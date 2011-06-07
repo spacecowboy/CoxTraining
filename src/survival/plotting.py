@@ -1,4 +1,7 @@
-import matplotlib.pyplot as plt
+try:
+    import matplotlib.pyplot as plt
+except ImportError:
+    plt = None #This makes matplotlib optional
 import numpy as np
 from random import random
 
@@ -9,41 +12,42 @@ def divide_and_plot(data, target_column, num = 2):
     plotted against each other.
     '''
 
-    #Divide set
-    times = [[] for _ in range(num)]
-    alive = [[] for _ in range(num)]
+    if plt:
+        #Divide set
+        times = [[] for _ in range(num)]
+        alive = [[] for _ in range(num)]
 
-    avg_time = np.average(data[:, target_column]) - 2
+        avg_time = np.average(data[:, target_column]) - 2
 
-    for time in data[:, target_column]:
-        #if time < avg_time:
-        if time < 5.0 * random():
-            times[0].append(time)
-        else:
-            times[1].append(time)
+        for time in data[:, target_column]:
+            #if time < avg_time:
+            if time < 5.0 * random():
+                times[0].append(time)
+            else:
+                times[1].append(time)
 
-    times[0] = sorted(times[0])
-    times[1] = sorted(times[1])
-    #Now make list of all time indices
-    all_times = sorted(times[0] + times[1])
+        times[0] = sorted(times[0])
+        times[1] = sorted(times[1])
+        #Now make list of all time indices
+        all_times = sorted(times[0] + times[1])
 
-    #Count how many are alive at each time
-    for i in range(num):
-        for time in all_times:
-            count = 0.0
-            for pattime in times[i]:
-                if pattime >= time:
-                    count += 1
-            alive[i].append(count / len(times[i]))
+        #Count how many are alive at each time
+        for i in range(num):
+            for time in all_times:
+                count = 0.0
+                for pattime in times[i]:
+                    if pattime >= time:
+                        count += 1
+                alive[i].append(count / len(times[i]))
 
-    #Now plot times vs alive
-    plt.figure()
-    plt.xlabel("Time")
-    plt.ylabel("Survival ratio")
-    plt.title("Survival plot")
-    for i in range(num):
-        plt.plot(all_times, alive[i], 'b-')
-    plt.show()
+        #Now plot times vs alive
+        plt.figure()
+        plt.xlabel("Time")
+        plt.ylabel("Survival ratio")
+        plt.title("Survival plot")
+        for i in range(num):
+            plt.plot(all_times, alive[i], 'b-')
+        plt.show()
 
 if __name__ == '__main__':
     from kalderstam.util.filehandling import parse_file

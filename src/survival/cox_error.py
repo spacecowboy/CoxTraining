@@ -5,7 +5,10 @@ import numpy as np
 from cox_error_in_c import derivative_beta as cderivative_beta, get_slope as cget_slope
 import kalderstam.util.graphlogger as glogger
 from kalderstam.util.numpyhelp import indexOf
-import matplotlib.pyplot as plt
+try:
+    import matplotlib.pyplot as plt
+except ImportError:
+    plt = None #This makes matplotlib optional
 
 logger = logging.getLogger('kalderstam.neural.error_functions')
 
@@ -99,30 +102,31 @@ def censor_rndtest(T, ratio):
     return Tc
 
 def orderscatter(outputs, T, filename = ""):
-    c_index = get_C_index(T, outputs)
+    if plt:
+        c_index = get_C_index(T, outputs)
 
-    T_copy = T.copy()
-    T_copy[:, 0] = outputs[:, 0]
+        T_copy = T.copy()
+        T_copy[:, 0] = outputs[:, 0]
 
-    plt.figure()
-    plt.title('Scatter between the indices of the sorted target and sorted output arrays\n' + str(filename) + "\nC index = " + str(c_index) + "\nEvents in green, Censored in red.")
-    plt.xlabel('Target index')
-    plt.ylabel('Network index')
+        plt.figure()
+        plt.title('Scatter between the indices of the sorted target and sorted output arrays\n' + str(filename) + "\nC index = " + str(c_index) + "\nEvents in green, Censored in red.")
+        plt.xlabel('Target index')
+        plt.ylabel('Network index')
 
-    for x_index in range(len(T)):
-        index_t = 0 #index in T
-        index_o = 0 #index in outputs
-        color = 'g'
-        if T[x_index, 1] == 0:
-            color = 'r'
-        for cmp_index in range(len(T)):
-            if T[x_index, 0] > T[cmp_index, 0]:
-                index_t += 1
-            if T_copy[x_index, 0] > T_copy[cmp_index, 0]:
-                index_o += 1
-        plt.scatter(index_t, index_o, c = color, marker = 's')
+        for x_index in range(len(T)):
+            index_t = 0 #index in T
+            index_o = 0 #index in outputs
+            color = 'g'
+            if T[x_index, 1] == 0:
+                color = 'r'
+            for cmp_index in range(len(T)):
+                if T[x_index, 0] > T[cmp_index, 0]:
+                    index_t += 1
+                if T_copy[x_index, 0] > T_copy[cmp_index, 0]:
+                    index_o += 1
+            plt.scatter(index_t, index_o, c = color, marker = 's')
 
-    plt.plot(range(len(T)), range(len(T)), 'r-')
+        plt.plot(range(len(T)), range(len(T)), 'r-')
 
 def get_beta_force(beta, outputs, risk_groups, part_func, weighted_avg):
     beta_force = 0
