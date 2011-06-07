@@ -21,5 +21,5 @@ setup(name = 'CoxTraining',
       package_data = {},
       ext_package = 'survival',
       ext_modules = [cox_ext],
-      requires = ['numpy', 'matplotlib'],
+      requires = ['numpy'],
      )
