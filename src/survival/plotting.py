@@ -14,8 +14,8 @@ def divide_and_plot(data, target_column, num = 2):
 
     if plt:
         #Divide set
-        times = [[] for _ in range(num)]
-        alive = [[] for _ in range(num)]
+        times = [[] for _ in xrange(num)]
+        alive = [[] for _ in xrange(num)]
 
         avg_time = np.average(data[:, target_column]) - 2
 
@@ -32,7 +32,7 @@ def divide_and_plot(data, target_column, num = 2):
         all_times = sorted(times[0] + times[1])
 
         #Count how many are alive at each time
-        for i in range(num):
+        for i in xrange(num):
             for time in all_times:
                 count = 0.0
                 for pattime in times[i]:
@@ -45,7 +45,7 @@ def divide_and_plot(data, target_column, num = 2):
         plt.xlabel("Time")
         plt.ylabel("Survival ratio")
         plt.title("Survival plot")
-        for i in range(num):
+        for i in xrange(num):
             plt.plot(all_times, alive[i], 'b-')
         plt.show()
 
