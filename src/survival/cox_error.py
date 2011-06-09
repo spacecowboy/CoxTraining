@@ -101,7 +101,7 @@ def censor_rndtest(T, ratio):
         Tc[i] = (T[i, 0], e)
     return Tc
 
-def orderscatter(outputs, T, filename = ""):
+def orderscatter(outputs, T, filename = "", marker = '+'):
     if plt:
         c_index = get_C_index(T, outputs)
 
@@ -113,20 +113,24 @@ def orderscatter(outputs, T, filename = ""):
         plt.xlabel('Target index')
         plt.ylabel('Network index')
 
+        largest = 0
+
         for x_index in range(len(T)):
             index_t = 0 #index in T
             index_o = 0 #index in outputs
             color = 'g'
-            if T[x_index, 1] == 0:
+            if not T[x_index, 1]:
                 color = 'r'
             for cmp_index in range(len(T)):
                 if T[x_index, 0] > T[cmp_index, 0]:
                     index_t += 1
+                    if index_t > largest:
+                        largest = index_t
                 if T_copy[x_index, 0] > T_copy[cmp_index, 0]:
                     index_o += 1
-            plt.scatter(index_t, index_o, c = color, marker = 's')
+            plt.plot(index_t, index_o, color + marker)
 
-        plt.plot(range(len(T)), range(len(T)), 'r-')
+        plt.plot(range(largest), range(largest), 'r-')
 
 def get_beta_force(beta, outputs, risk_groups, part_func, weighted_avg):
     beta_force = 0
