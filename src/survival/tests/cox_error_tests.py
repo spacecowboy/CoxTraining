@@ -111,7 +111,7 @@ class Test(unittest.TestCase):
         sigma = calc_sigma(outputs)
         avg = outputs[:, 0].sum() / len(outputs)
         #First calculate it manually, then compare with function
-        for i in range(len(outputs)):
+        for i in xrange(len(outputs)):
             output = outputs[i, 0]
             ds = (output - avg) / (len(outputs) * sigma)
             assert(ds == derivative_sigma(sigma, i, outputs))
@@ -139,7 +139,7 @@ class Test(unittest.TestCase):
         outputs, rnd_timeslots = generate_random_data(100)
         beta, beta_risk, part_func, weighted_avg = calc_beta(outputs, timeslots, risk_groups)
 
-        for output_index in range(len(outputs)):
+        for output_index in xrange(len(outputs)):
             #Do the derivative for every Yi
             output = outputs[output_index, 0]
             test_yforce = 0
@@ -192,7 +192,7 @@ class Test(unittest.TestCase):
         beta, beta_risk, part_func, weighted_avg = calc_beta(outputs, timeslots, risk_groups)
         beta_force = get_beta_force(beta, outputs, risk_groups, part_func, weighted_avg)
         print(len(beta_risk), len(part_func), len(weighted_avg))
-        for output_index in range(len(outputs)):
+        for output_index in xrange(len(outputs)):
             y_force = get_y_force(beta, part_func, weighted_avg, output_index, outputs, timeslots, risk_groups)
 
             dBdYi = -y_force / beta_force

@@ -21,8 +21,8 @@ def get_C_index(T, outputs):
     Censored points can only be compared to earlier non-censored points."""
     total = 0
     sum = 0
-    for x in range(len(T)):
-        for y in range(len(T)):
+    for x in xrange(len(T)):
+        for y in xrange(len(T)):
             if x == y:
                 continue #Don't compare with itself
             if T[x, 1] == 1 and (T[y, 1] == 1): #Non-censored, compare with all other non-censored
@@ -46,7 +46,7 @@ def generate_timeslots(T):
     """Setting for_censored to true will reverse the behaviour and the function generates timeslots for censored data instead of for non-censored.
     Used for plotting the order-scatter"""
     timeslots = np.array([], dtype = np.int64)
-    for x_index in range(len(T)):
+    for x_index in xrange(len(T)):
         event = T[x_index][1]
         if event == 1: #Else it was censored
             time = T[x_index][0]
@@ -55,7 +55,7 @@ def generate_timeslots(T):
             else:
                 added = False
                 #Find slot
-                for index in range(len(timeslots)):
+                for index in xrange(len(timeslots)):
                     time_index = timeslots[index]
                     if time < T[time_index, 0]:
                         timeslots = np.insert(timeslots, index, x_index)
@@ -76,7 +76,7 @@ def get_risk_groups(T, timeslots):
     for i in timeslots:
         group = np.array([], dtype = np.int64)
         #Iterate over T and add all with a time less than T[i]
-        for j in range(len(T)):
+        for j in xrange(len(T)):
             if T[j][0] <= T[i][0]:
                 group = np.append(group, j)
         risk_groups.append(group)
@@ -84,7 +84,7 @@ def get_risk_groups(T, timeslots):
 
 def generate_random_data(number):
     outputs = np.random.random((number, 2))
-    for i in range(len(outputs)):
+    for i in xrange(len(outputs)):
         outputs[i, 1] = np.random.randint(0, 2) #inclusive, exclusive
     timeslots = generate_timeslots(outputs)
 
@@ -93,7 +93,7 @@ def generate_random_data(number):
 def censor_rndtest(T, ratio):
     temp = [[1.5, 0] for _ in T]
     Tc = np.array(temp, dtype = np.float64)
-    for i in range(len(T)):
+    for i in xrange(len(T)):
         if np.random.rand() <= ratio:
             e = 0
         else:
@@ -114,14 +114,13 @@ def orderscatter(outputs, T, filename = "", marker = '+'):
         plt.ylabel('Network index')
 
         largest = 0
-
-        for x_index in range(len(T)):
+        for x_index in xrange(len(T)):
             index_t = 0 #index in T
             index_o = 0 #index in outputs
             color = 'g'
             if not T[x_index, 1]:
                 color = 'r'
-            for cmp_index in range(len(T)):
+            for cmp_index in xrange(len(T)):
                 if T[x_index, 0] > T[cmp_index, 0]:
                     index_t += 1
                     if index_t > largest:
@@ -193,7 +192,7 @@ def derivative_beta(beta, part_func, weighted_avg, beta_force, output_index, out
 def get_slope(beta, risk_groups, beta_risk, part_func, weighted_avg, outputs, timeslots):
     #cget_slope(beta, risk_groups, beta_risk, part_func, weighted_avg, outputs, timeslots)
     result = 0
-    for time_index in range(len(timeslots)):
+    for time_index in xrange(len(timeslots)):
         s = timeslots[time_index]
         output = outputs[s, 0]
         risk_outputs = outputs[risk_groups[time_index], 0]
@@ -217,7 +216,7 @@ def calc_beta(outputs, timeslots, risk_groups):
     beta = 0.1 #Start with something small
     distance = 7.0 #Fairly large interval, we actually want to cross the zero
 
-    beta_risk = [np.zeros(len(risk_groups[i])) for i in range(len(risk_groups))]
+    beta_risk = [np.zeros(len(risk_groups[i])) for i in xrange(len(risk_groups))]
     part_func = np.zeros(len(timeslots))
     weighted_avg = np.zeros(len(timeslots))
 

@@ -15,7 +15,7 @@ class Test(unittest.TestCase):
 
     def generateRandomTestData(self, number):
         outputs = np.random.random((number, 2))
-        for i in range(len(outputs)):
+        for i in xrange(len(outputs)):
             outputs[i, 1] = np.random.randint(0, 2) #inclusive, exclusive
         timeslots = generate_timeslots(outputs)
 
@@ -30,15 +30,15 @@ class Test(unittest.TestCase):
         #Now get a new set, that won't match this, so beta doesn't diverge
         outputs, rnd_timeslots = self.generateRandomTestData(100)
 
-        risk_outputs = [None for i in range(len(timeslots))]
-        beta_risk = [np.zeros(len(risk_groups[i])) for i in range(len(risk_groups))]
+        risk_outputs = [None for i in xrange(len(timeslots))]
+        beta_risk = [np.zeros(len(risk_groups[i])) for i in xrange(len(risk_groups))]
         part_func = np.zeros(len(timeslots))
         weighted_avg = np.zeros(len(timeslots))
 
         pyget_slope(beta, risk_outputs, beta_risk, part_func, weighted_avg, outputs, timeslots)
         beta_force = get_beta_force(beta, outputs, risk_groups, part_func, weighted_avg)
 
-        for output_index in range(len(outputs)):
+        for output_index in xrange(len(outputs)):
             cder = cderivative_beta(beta, part_func, weighted_avg, beta_force, output_index, outputs, timeslots, risk_groups)
             pyder = pyderivative_beta(beta, part_func, weighted_avg, beta_force, output_index, outputs, timeslots, risk_groups)
             print(cder, pyder)
@@ -58,8 +58,8 @@ class Test(unittest.TestCase):
         #Now get a new set, that won't match this, so beta doesn't diverge
         outputs, rnd_timeslots = self.generateRandomTestData(100)
 
-        pybeta_risk = [np.zeros(len(risk_groups[i])) for i in range(len(risk_groups))]
-        cbeta_risk = [np.zeros(len(risk_groups[i])) for i in range(len(risk_groups))]
+        pybeta_risk = [np.zeros(len(risk_groups[i])) for i in xrange(len(risk_groups))]
+        cbeta_risk = [np.zeros(len(risk_groups[i])) for i in xrange(len(risk_groups))]
         pypart_func = np.zeros(len(timeslots))
         cpart_func = np.zeros(len(timeslots))
         pyweighted_avg = np.zeros(len(timeslots))
