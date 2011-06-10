@@ -250,7 +250,11 @@ def calc_sigma(outputs):
     logger.debug("Sigma = " + str(sigma))
     return sigma
 
-def total_error(beta, sigma):
+def total_error(target, result, error = 1, **kwargs):
+    '''Intended for learning rate variance during training, must be precomputed from epoch-function.'''
+    return error
+
+def cox_error(beta, sigma):
     """E = ln(1 + exp(Delta - Beta*Sigma))."""
     return log(1 + exp(shift - beta * sigma))
 
@@ -277,12 +281,14 @@ def epoch_func(net, test_inputs, test_targets, block_size, timeslots = None, ris
         risk_groups = get_risk_groups(test_targets, timeslots)
     beta, beta_risk, part_func, weighted_avg = calc_beta(outputs, timeslots, risk_groups)
 
-    glogger.debugPlot('Total error', total_error(beta, sigma), style = 'b-')
+    error = cox_error(beta, sigma)
+
+    glogger.debugPlot('Total error', error, style = 'b-')
     glogger.debugPlot('Sigma * Beta vs Epochs', beta * sigma, style = 'g-')
     #glogger.debugPlot('Sigma vs Epochs', sigma, style = 'b-')
     #glogger.debugPlot('Beta vs Epochs', beta, style = 'b-')
     logger.info('Beta*Sigma = ' + str(sigma * beta))
-    return {}
+    return {'error': error}
 
 def block_func(test_inputs, test_targets, block_size, outputs, block_members, timeslots = None, risk_groups = None, **kwargs):
     block_outputs = outputs[block_members]
