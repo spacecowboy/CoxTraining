@@ -274,22 +274,21 @@ def pre_loop_func(net, test_inputs, test_targets, block_size):
         return {}
 
 def epoch_func(net, test_inputs, test_targets, block_size, epoch, timeslots = None, risk_groups = None, **pre_loop_kwargs):
-    if epoch % 10 == 0: #Every tenth epoch
-        outputs = net.sim(test_inputs)
-        sigma = calc_sigma(outputs)
-        if block_size != 0 and block_size != len(test_targets):
-            timeslots = generate_timeslots(test_targets)
-            risk_groups = get_risk_groups(test_targets, timeslots)
-        beta, beta_risk, part_func, weighted_avg = calc_beta(outputs, timeslots, risk_groups)
+    outputs = net.sim(test_inputs)
+    sigma = calc_sigma(outputs)
+    if block_size != 0 and block_size != len(test_targets):
+        timeslots = generate_timeslots(test_targets)
+        risk_groups = get_risk_groups(test_targets, timeslots)
+    beta, beta_risk, part_func, weighted_avg = calc_beta(outputs, timeslots, risk_groups)
 
-        error = cox_error(beta, sigma)
+    error = cox_error(beta, sigma)
 
-        glogger.debugPlot('Total error', error, style = 'b-')
-        glogger.debugPlot('Sigma * Beta vs Epochs', beta * sigma, style = 'g-')
-        #glogger.debugPlot('Sigma vs Epochs', sigma, style = 'b-')
-        #glogger.debugPlot('Beta vs Epochs', beta, style = 'b-')
-        logger.info('Beta*Sigma = ' + str(sigma * beta))
-        return {'error': error}
+    glogger.debugPlot('Total error', error, style = 'b-')
+    glogger.debugPlot('Sigma * Beta vs Epochs', beta * sigma, style = 'g-')
+    #glogger.debugPlot('Sigma vs Epochs', sigma, style = 'b-')
+    #glogger.debugPlot('Beta vs Epochs', beta, style = 'b-')
+    logger.info('Beta*Sigma = ' + str(sigma * beta))
+    return {'error': error}
 
 def block_func(test_inputs, test_targets, block_size, outputs, block_members, timeslots = None, risk_groups = None, **kwargs):
     block_outputs = outputs[block_members]
