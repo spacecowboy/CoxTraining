@@ -276,7 +276,7 @@ def pre_loop_func(net, test_inputs, test_targets, block_size):
 def epoch_func(net, test_inputs, test_targets, block_size, timeslots = None, risk_groups = None, **pre_loop_kwargs):
     outputs = net.sim(test_inputs)
     sigma = calc_sigma(outputs)
-    if block_size != 0 or block_size != len(test_targets):
+    if block_size != 0 and block_size != len(test_targets):
         timeslots = generate_timeslots(test_targets)
         risk_groups = get_risk_groups(test_targets, timeslots)
     beta, beta_risk, part_func, weighted_avg = calc_beta(outputs, timeslots, risk_groups)
