@@ -18,6 +18,7 @@ def kaplanmeier(data, time_column, event_column, output_column, threshold = None
     '''
 
     if plt:
+
         #Divide set
         times = [[] for _ in xrange(2)]
         alive = [[] for _ in xrange(2)]
@@ -31,10 +32,9 @@ def kaplanmeier(data, time_column, event_column, output_column, threshold = None
             else:
                 times[1].append((time, event))
 
-        #times[0] = sorted(times[0][:, 0])
         times[0] = sorted(times[0], key = lambda x: x[0])
-        #times[1] = sorted(times[1][:, 0])
         times[1] = sorted(times[1], key = lambda x: x[0])
+
         #Now make list of all time indices, this is just a convenience for plotting points
         all_times = sorted(times[0] + times[1], key = lambda x: x[0])
 
@@ -64,8 +64,8 @@ def kaplanmeier(data, time_column, event_column, output_column, threshold = None
         for i in xrange(2):
             ps.append(ax.plot([x[0] for x in all_times], alive[i], styles[i]))
             labels.append(str(alive[i][-1]))
+
         leg = ax.legend(ps, labels, 'upper right')
-        #leg = ax.legend('upper right')
         ax.set_xlabel("Time, years")
         ax.set_ylabel("Survival ratio")
         ax.set_title("Kaplan-Meier survival curve, threshold: " + str(threshold))

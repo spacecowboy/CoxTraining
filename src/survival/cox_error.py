@@ -283,7 +283,11 @@ def epoch_func(net, test_inputs, test_targets, block_size, epoch, timeslots = No
 
     error = cox_error(beta, sigma)
 
+    c_index = get_C_index(test_targets, outputs)
+    logger.info("C index = " + str(c_index))
+
     glogger.debugPlot('Total error', error, style = 'b-')
+    glogger.debugPlot('C index vs Epochs', c_index, style = 'b-')
     glogger.debugPlot('Sigma * Beta vs Epochs', beta * sigma, style = 'g-')
     #glogger.debugPlot('Sigma vs Epochs', sigma, style = 'b-')
     #glogger.debugPlot('Beta vs Epochs', beta, style = 'b-')
