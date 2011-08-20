@@ -2,7 +2,6 @@ from numpy import log, exp
 import logging
 import numpy as np
 #import kalderstam.util.graphlogger as glogger
-from kalderstam.util.decorators import benchmark_adv
 from cox_error_in_c import derivative_beta as cderivative_beta, get_slope as cget_slope
 import kalderstam.util.graphlogger as glogger
 from kalderstam.util.numpyhelp import indexOf
@@ -17,7 +16,6 @@ logger = logging.getLogger('kalderstam.neural.error_functions')
 
 shift = 4 #Also known as Delta, it's the handwaving variable.
 
-@benchmark_adv
 def get_C_index(T, outputs):
     """Compare that the outputs are sorted 'correctly'.
     if T[x,0] < T[y,0] and X[x] < X[y] or T[x,0] > T[y,0] and X[x] > X[y], plus 1. Finally divide by the number of comparisons made.
