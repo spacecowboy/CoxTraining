@@ -1,5 +1,7 @@
 from survival.cox_error import get_C_index
+from kalderstam.util.decorators import benchmark_adv
 
+@benchmark_adv
 def c_index_error(target, result):
     '''Used in genetic training.'''
     #len(target) first to compensate for internals in genetic training
