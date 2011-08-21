@@ -10,4 +10,4 @@ def c_index_error(target, result):
         #also avoids division by zero below
         return 100.0
 
-    return len(target) / abs(C - 0.5) - 2 * len(target) #return inverse, error should be low if c_index is high. last minus term makes the minimum zero and not two.
+    return 1 / abs(C - 0.5) - 2 #return inverse, error should be low if c_index is high. last minus term makes the minimum zero and not two.
