@@ -7,15 +7,16 @@ import unittest
 import numpy as np
 from survival.cox_error import get_risk_groups, \
     calc_sigma, derivative_sigma, shift, derivative_error, calc_beta, \
-    get_beta_force, derivative_beta, get_y_force, generate_random_data, get_C_index
+    get_beta_force, derivative_beta, get_y_force, generate_random_data
+from survival.cox_error_in_c import get_C_index
 from kalderstam.util.numpyhelp import indexOf
 from random import sample
 
 class Test(unittest.TestCase):
 
     def testCIndex(self):
-        T, timeslots = generate_random_data(50)
-        outputs, rndtimeslots = generate_random_data(50)
+        T, timeslots = generate_random_data(1000)
+        outputs, rndtimeslots = generate_random_data(1000)
         #Should give perfect result
         c_perfect = get_C_index(T, T)
         print(c_perfect)

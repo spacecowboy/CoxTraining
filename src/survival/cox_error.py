@@ -17,7 +17,10 @@ logger = logging.getLogger('kalderstam.neural.error_functions')
 shift = 4 #Also known as Delta, it's the handwaving variable.
 
 def get_C_index(T, outputs):
-    """Compare that the outputs are sorted 'correctly'.
+    """
+    DO NOT USE THIS VERSION. Instead use the much faster version in the c-module.
+    
+    Compare that the outputs are sorted 'correctly'.
     if T[x,0] < T[y,0] and X[x] < X[y] or T[x,0] > T[y,0] and X[x] > X[y], plus 1. Finally divide by the number of comparisons made.
     Non-censored points can be compared with all other non-censored points and all later censored points.
     Censored points can only be compared to earlier non-censored points."""

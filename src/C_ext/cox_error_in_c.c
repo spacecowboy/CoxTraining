@@ -2,32 +2,6 @@
 #include <numpy/arrayobject.h> // NumPy as seen from C
 #include <math.h>
 
-/*def get_C_index(T, outputs):
-    """Compare that the outputs are sorted 'correctly'.
-    if T[x,0] < T[y,0] and X[x] < X[y] or T[x,0] > T[y,0] and X[x] > X[y], plus 1. Finally divide by the number of comparisons made.
-    Non-censored points can be compared with all other non-censored points and all later censored points.
-    Censored points can only be compared to earlier non-censored points."""
-    total = 0
-    sum = 0
-    for x in xrange(len(T)):
-        for y in xrange(len(T)):
-            if x == y:
-                continue #Don't compare with itself
-            if T[x, 1] == 1 and (T[y, 1] == 1): #Non-censored, compare with all other non-censored
-                total += 1
-                if outputs[x, 0] >= outputs[y, 0] and T[x, 0] >= T[y, 0] or outputs[x, 0] <= outputs[y, 0] and T[x, 0] <= T[y, 0]:
-                    sum += 1
-            elif T[x, 1] == 1 and (T[y, 1] == 0) and T[x, 0] <= T[y, 0]: #Non-censored, compare with later censored
-                total += 1
-                if outputs[x, 0] <= outputs[y, 0]:
-                    sum += 1
-            elif T[x, 1] == 0 and T[y, 1] == 1 and T[x, 0] >= T[y, 0]: #Censored, compare only with earlier non-censored
-                total += 1
-                if outputs[x, 0] >= outputs[y, 0]:
-                    sum += 1
-
-    sum /= float(total)
-    return sum*/
 static PyObject *get_C_index(PyObject *self, PyObject *args)
 {
 	// Define numpy arguments.

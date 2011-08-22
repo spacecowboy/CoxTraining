@@ -5,11 +5,11 @@ Created on Apr 18, 2011
 '''
 import unittest
 from survival.cox_error import get_risk_groups, \
-    get_beta_force, generate_timeslots, get_slope as pyget_slope, derivative_beta as pyderivative_beta, calc_beta, get_y_force as pygetyforce
+    get_beta_force, generate_timeslots, get_slope as pyget_slope, derivative_beta as pyderivative_beta, calc_beta, get_y_force as pygetyforce, get_C_index as pyCindex
 #from ..cox_error import get_slope as pyget_slope, derivative_beta as pyderivative_beta, calc_beta, get_y_force as pygetyforce
-from survival.cox_error_in_c import derivative_beta as cderivative_beta, get_slope as cget_slope#, #get_y_force as cgetyforce #@UnresolvedImport
+from survival.cox_error_in_c import derivative_beta as cderivative_beta, get_slope as cget_slope
 import numpy as np
-
+from survival.cox_error_in_c import get_C_index as cCindex
 
 class Test(unittest.TestCase):
 
@@ -109,6 +109,13 @@ class Test(unittest.TestCase):
             assert(isinstance(p, c.__class__))
             assert(p == c)
 
+    def testCIndex(self):
+        T, bah = self.generateRandomTestData(1000)
+        outputs, bah = self.generateRandomTestData(1000)
+        pyVal = pyCindex(T, outputs)
+        cVal = cCindex(T, outputs)
+        print("pyVal = ", pyVal, " cVal = ", cVal)
+        assert(pyVal == cVal)
 
 if __name__ == "__main__":
     #import sys;sys.argv = ['', 'Test.testName']
