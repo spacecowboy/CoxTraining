@@ -2,6 +2,103 @@
 #include <numpy/arrayobject.h> // NumPy as seen from C
 #include <math.h>
 
+/*def get_C_index(T, outputs):
+    """Compare that the outputs are sorted 'correctly'.
+    if T[x,0] < T[y,0] and X[x] < X[y] or T[x,0] > T[y,0] and X[x] > X[y], plus 1. Finally divide by the number of comparisons made.
+    Non-censored points can be compared with all other non-censored points and all later censored points.
+    Censored points can only be compared to earlier non-censored points."""
+    total = 0
+    sum = 0
+    for x in xrange(len(T)):
+        for y in xrange(len(T)):
+            if x == y:
+                continue #Don't compare with itself
+            if T[x, 1] == 1 and (T[y, 1] == 1): #Non-censored, compare with all other non-censored
+                total += 1
+                if outputs[x, 0] >= outputs[y, 0] and T[x, 0] >= T[y, 0] or outputs[x, 0] <= outputs[y, 0] and T[x, 0] <= T[y, 0]:
+                    sum += 1
+            elif T[x, 1] == 1 and (T[y, 1] == 0) and T[x, 0] <= T[y, 0]: #Non-censored, compare with later censored
+                total += 1
+                if outputs[x, 0] <= outputs[y, 0]:
+                    sum += 1
+            elif T[x, 1] == 0 and T[y, 1] == 1 and T[x, 0] >= T[y, 0]: #Censored, compare only with earlier non-censored
+                total += 1
+                if outputs[x, 0] >= outputs[y, 0]:
+                    sum += 1
+
+    sum /= float(total)
+    return sum*/
+static PyObject *get_C_index(PyObject *self, PyObject *args)
+{
+	// Define numpy arguments.
+	PyArrayObject *T, *outputs; // These are all indexed by slot_index.
+	// Define internals
+	double total = 0, sum = 0, Tx1, Ty1, Tx0, Ty0, outputsx0, outputsy0;
+	int countx,county, max;
+
+	// Order of the arguments are: T,         outputs
+		if (!PyArg_ParseTuple(args, "OO", &T, &outputs))
+		{
+			PyErr_Format(PyExc_ValueError, "Order of the arguments are: T, outputs");
+			return NULL;
+		}
+
+		// Check length and type of the array, return exception if wrong.
+		if (PyArray_NDIM(T) != 2 || (PyArray_TYPE(T) != NPY_DOUBLE)) {
+			PyErr_Format(PyExc_ValueError, "Because T array is %d-dimensional or not of type double", PyArray_NDIM(T));
+			return NULL;
+		} else if (PyArray_NDIM(outputs) != 2 || (PyArray_TYPE(outputs) != NPY_DOUBLE)) {
+			PyErr_Format(PyExc_ValueError, "Because outputs array is %d-dimensional or not of type double", PyArray_NDIM(outputs));
+			return NULL;
+		}
+
+	max = PyArray_DIM(T, 0);
+
+	for(countx = 0; countx < max; countx++) {
+		// Boilerplate
+		Tx0 = *(double *) PyArray_GETPTR2(T, countx, 0);
+		Tx1 = *(double *) PyArray_GETPTR2(T, countx, 1);
+		outputsx0 = *(double *) PyArray_GETPTR2(outputs, countx, 0);
+		
+		for(county = countx + 1; county < max; county++) {
+			if(countx == county)
+			    continue;
+	                // Boilerplate
+			Ty0 = *(double *) PyArray_GETPTR2(T, county, 0);
+			Ty1 = *(double *) PyArray_GETPTR2(T, county, 1);
+			outputsy0 = *(double *) PyArray_GETPTR2(outputs, county, 0);
+			
+			if(Tx1 == 1 && Ty1 == 1) { //Non-censored, compare with all other non-censored
+				total++;
+				if ( (Tx0 <= Ty0 && outputsx0 <= outputsy0) ||
+						(Ty0 <= Tx0 && outputsy0 <= outputsx0) )
+					sum++;
+			}
+			else if(Tx1 == 1 || Ty1 == 1) { //Non-censored and censored. Compare if
+				// Compare noncensored with later censored
+				if(Tx1 == 1) {
+					// X noncensored
+					if(Tx0 <= Ty0) {
+						total++;
+						if(outputsx0 <= outputsy0)
+							sum++;
+					}
+				} else {
+					// Y noncensored
+					if(Ty0 <= Tx0) {
+						total++;
+						if(outputsy0 <= outputsx0)
+							sum++;
+					}
+				}
+			}
+		}
+	}
+
+	sum /= total;
+	return Py_BuildValue("d", sum);
+};
+
 int inRiskGroup(long output_index, PyArrayObject *risk_group) {
 	if (PyArray_NDIM(risk_group) != 1 || PyArray_TYPE(risk_group) != NPY_INT64) {
 		PyErr_Format(PyExc_ValueError, "Because risk_group array is %d-dimensional or not of type int64", PyArray_NDIM(risk_group));
@@ -175,6 +272,7 @@ static PyMethodDef methods[] = {
 	METH_VARARGS, // positional (no keyword) arguments
 	NULL}, // doc string for function
 	{"get_slope", get_slope, METH_VARARGS, NULL},
+	{"get_C_index", get_C_index, METH_VARARGS, NULL},
 };
 
 
