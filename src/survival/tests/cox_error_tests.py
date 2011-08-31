@@ -27,6 +27,37 @@ class Test(unittest.TestCase):
         print(c_rnd)
         assert(c_rnd < 0.6 and c_rnd > 0.4)
 
+        #Make all outputs zero. This should NOT give good result
+        outputs = np.zeros_like(outputs)
+        c_zero = get_C_index(T, outputs)
+        print(c_zero)
+        assert(c_zero < 0.6)
+
+    def testCIndexShuffling(self):
+        T, timeslots = generate_random_data(1000)
+        def right(ar):
+            return ar[:, 0] + ar[:, 1] * ar[:, 2]
+        def wrong(ar):
+            return ar[:, 0] - ar[:, 1] * ar[:, 2]
+        all = P = np.random.rand(1000, 7) #Filler column to the right
+
+        all[:, 4] = T[:, 1]
+        all[:, 3] = right(all[:, 0:3])
+        all[:, 5] = wrong(all[:, 0:3])
+
+        c_all_wrong = get_C_index(all[:, 3:5], all[:, 5:7])
+
+        print("C all wrong = " + str(c_all_wrong))
+
+        all_shuffled = np.copy(all)
+        np.random.shuffle(all_shuffled)
+
+        c_all_shuffled = get_C_index(all[:, 3:5], all[:, 5:7])
+
+        print("C all shuffled = " + str(c_all_shuffled))
+
+        assert(c_all_shuffled == c_all_wrong)
+
 
     def testGetRiskGroups(self):
         outputs, timeslots = generate_random_data(50)
@@ -45,7 +76,6 @@ class Test(unittest.TestCase):
 
         for z, risk_group in zip(part_func, risk_groups):
             testz = np.sum(np.exp(beta * outputs[risk_group, 0]))
-            print(z, testz)
             assert(z == testz)
 
     def testWeightedAverage(self):
@@ -57,7 +87,6 @@ class Test(unittest.TestCase):
 
         for w, z, risk_group in zip(weighted_avg, part_func, risk_groups):
             testw = 1 / z * np.sum(np.exp(beta * outputs[risk_group, 0]) * outputs[risk_group, 0])
-            print(w, testw)
             assert(round(w, 10) == round(testw, 10))
 
 
@@ -103,7 +132,6 @@ class Test(unittest.TestCase):
         F_result = 0
         for s in timeslots:
             F_result += outputs[s, 0] - weighted_avg[s]
-        print(str(F_result))
         assert(round(F_result, 4) == 0)
 
     def testDerivativeSigma(self):
@@ -157,7 +185,6 @@ class Test(unittest.TestCase):
 
             yforce = get_y_force(beta, part_func, weighted_avg, output_index, outputs, timeslots, risk_groups)
 
-            print(test_yforce, yforce)
             assert(test_yforce == yforce)
 
 
@@ -181,7 +208,6 @@ class Test(unittest.TestCase):
 
         betaforce = get_beta_force(beta, outputs, risk_groups, part_func, weighted_avg)
 
-        print(testbeta_force, betaforce)
         assert(round(testbeta_force, 10) == round(betaforce, 10))
 
     def testDerivativeBeta(self):
@@ -192,14 +218,12 @@ class Test(unittest.TestCase):
 
         beta, beta_risk, part_func, weighted_avg = calc_beta(outputs, timeslots, risk_groups)
         beta_force = get_beta_force(beta, outputs, risk_groups, part_func, weighted_avg)
-        print(len(beta_risk), len(part_func), len(weighted_avg))
         for output_index in xrange(len(outputs)):
             y_force = get_y_force(beta, part_func, weighted_avg, output_index, outputs, timeslots, risk_groups)
 
             dBdYi = -y_force / beta_force
             method_value = derivative_beta(beta, part_func, weighted_avg, beta_force, output_index, outputs, timeslots, risk_groups)
 
-            print(dBdYi, method_value)
             assert(round(dBdYi, 10) == round(method_value, 10)) #Otherwise errors might happen on 32-bit machines
 
 
