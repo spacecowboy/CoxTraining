@@ -6,11 +6,13 @@ def c_index_error(target, result):
     #len(target) first to compensate for internals in genetic training
     #abs( - 0.5) to make both "positive" and "negative" C_index work, since they do
     C = get_C_index(target, result)
-    if C < 0.51:
-        #dont want these right now, return 100 as error
-        #also avoids division by zero below
-        retval = 100.0
-    else:
-        retval = (1 / abs(C - 0.5) - 2.0) #return inverse, error should be low if c_index is high. last minus term makes the minimum zero and not two.
 
-    return len(result) * retval
+    try:
+        #A C of 0 is achievable if the network evolves to always output the same value regardless of input. Thus we can't
+        #trust values lower than 0.5.
+        retval = 1.0 / C
+    except (ZeroDivisionError):
+        retval = 9000.0 #Very unlikely, but still possible
+
+    return len(target) * retval
+
