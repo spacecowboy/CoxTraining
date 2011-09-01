@@ -41,7 +41,7 @@ class Test(unittest.TestCase):
         for output_index in xrange(len(outputs)):
             cder = cderivative_beta(beta, part_func, weighted_avg, beta_force, output_index, outputs, timeslots, risk_groups)
             pyder = pyderivative_beta(beta, part_func, weighted_avg, beta_force, output_index, outputs, timeslots, risk_groups)
-            print(cder, pyder)
+            #print(cder, pyder)
             assert(isinstance(pyder, cder.__class__))
             assert(round(cder, 20) == round(pyder, 20))
             assert(cder == pyder)
@@ -74,7 +74,7 @@ class Test(unittest.TestCase):
         assert(not np.isnan(pyslope))
         assert(not np.isnan(cslope))
         #assert(isinstance(pyslope, cslope.__class__)) #Make sure they are of the same type
-        print(pyslope, cslope)
+        #print(pyslope, cslope)
         assert(round(pyslope, 20) == round(cslope, 20))
         assert(pyslope == cslope)
 #        #Risk outputs
@@ -88,24 +88,24 @@ class Test(unittest.TestCase):
 #                assert(isinstance(pp, cc.__class__))
 #                assert(pp == cc)
         #Beta risk
-        print("Beta Risk")
+        #print("Beta Risk")
         for p, c, in zip(pybeta_risk, cbeta_risk):
             assert(isinstance(p, c.__class__))
             for pp, cc in zip(p, c):
-                print(pp, cc)
+                #print(pp, cc)
                 assert(isinstance(pp, cc.__class__))
                 #if (pp != cc):
                 assert(pp == cc)
         #part_func
-        print("Part func")
+        #print("Part func")
         for p, c in zip(pypart_func, cpart_func):
-            print(p, c)
+            #print(p, c)
             assert(isinstance(p, c.__class__))
             assert(p == c)
         #weighted average
-        print("Weighted avg")
+        #print("Weighted avg")
         for p, c in zip(pyweighted_avg, cweighted_avg):
-            print(p, c)
+            #print(p, c)
             assert(isinstance(p, c.__class__))
             assert(p == c)
 
@@ -116,6 +116,20 @@ class Test(unittest.TestCase):
         cVal = cCindex(T, outputs)
         print("pyVal = ", pyVal, " cVal = ", cVal)
         assert(pyVal == cVal)
+
+        T[:, 0] = np.arange(len(T))
+        outputs = T
+        rev_outputs = outputs[::-1]
+        cVal = cCindex(T, outputs)
+        cValrev = cCindex(T, rev_outputs)
+        pyVal = pyCindex(T, outputs)
+        pyValrev = pyCindex(T, rev_outputs)
+
+        print("ordered = ", cVal, " reversed = ", cValrev)
+        assert(cVal == 1)
+        assert(cValrev == 0)
+        assert(pyVal == cVal)
+        assert(pyValrev == cValrev)
 
 if __name__ == "__main__":
     #import sys;sys.argv = ['', 'Test.testName']
