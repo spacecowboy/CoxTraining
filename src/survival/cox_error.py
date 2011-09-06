@@ -101,6 +101,7 @@ def censor_rndtest(T, ratio):
     for i in xrange(len(T)):
         if np.random.rand() <= ratio:
             e = 0
+            T[i, 0] = np.random.rand()*T[i, 0]#also cut time
         else:
             e = 1
         Tc[i] = (T[i, 0], e)
