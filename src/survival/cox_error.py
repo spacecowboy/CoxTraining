@@ -2,7 +2,7 @@ from numpy import log, exp
 import logging
 import numpy as np
 #import kalderstam.util.graphlogger as glogger
-from cox_error_in_c import derivative_beta as cderivative_beta, get_slope as cget_slope
+from cox_error_in_c import derivative_beta as cderivative_beta, get_slope as cget_slope, get_C_index as get_cC_index
 import kalderstam.util.graphlogger as glogger
 from kalderstam.util.numpyhelp import indexOf
 try:
@@ -108,7 +108,7 @@ def censor_rndtest(T, ratio):
 
 def orderscatter(outputs, T, filename = "", marker = '+'):
     if plt:
-        c_index = get_C_index(T, outputs)
+        c_index = get_cC_index(T, outputs)
 
         T_copy = T.copy()
         T_copy[:, 0] = outputs[:, 0]
@@ -288,7 +288,7 @@ def epoch_func(net, test_inputs, test_targets, block_size, epoch, timeslots = No
 
     error = cox_error(beta, sigma)
 
-    c_index = get_C_index(test_targets, outputs)
+    c_index = get_cC_index(test_targets, outputs)
     logger.info("C index = " + str(c_index))
 
     glogger.debugPlot('Total error', error, style = 'b-')
