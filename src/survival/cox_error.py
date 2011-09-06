@@ -302,7 +302,7 @@ def epoch_func(net, test_inputs, test_targets, block_size, epoch, timeslots = No
 def block_func(test_inputs, test_targets, block_size, outputs, block_members, timeslots = None, risk_groups = None, **kwargs):
     block_outputs = outputs[block_members]
     sigma = calc_sigma(block_outputs)
-    if block_size != 0 or block_size != len(test_targets):
+    if block_size != 0 and block_size != len(test_targets):
         timeslots = generate_timeslots(test_targets[block_members])
         risk_groups = get_risk_groups(test_targets[block_members], timeslots)
         retval = {'timeslots': timeslots, 'risk_groups': risk_groups}
