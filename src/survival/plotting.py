@@ -6,7 +6,7 @@ except ImportError:
 import numpy as np
 from random import random
 
-def kaplanmeier(data = None, time_column = None, event_column = None, output_column = None, time_array = None, event_array = None, output_array = None, threshold = None):
+def kaplanmeier(data = None, time_column = None, event_column = None, output_column = None, time_array = None, event_array = None, output_array = None, threshold = None, even = True):
     ''' Idea is to plot number of patients still alive on the y-axis,
     against the time on the x-axis. The time column specifies which
     axis is the time. Event column should be a binary value, indicating
@@ -37,6 +37,7 @@ def kaplanmeier(data = None, time_column = None, event_column = None, output_col
         if output_column is not None:
             output_array = data[:, output_column]
 
+
         if threshold is None:
             threshold = np.median(output_array)
         try:
@@ -50,7 +51,6 @@ def kaplanmeier(data = None, time_column = None, event_column = None, output_col
         times = [[] for _ in xrange(len(threshold) + 1)]
         alive = [[] for _ in xrange(len(threshold) + 1)]
 
-
         for time, event, value in zip(time_array, event_array, output_array):
             for i in xrange(len(times)):
                 if i < len(threshold) and value < threshold[i]:
@@ -59,15 +59,20 @@ def kaplanmeier(data = None, time_column = None, event_column = None, output_col
                 elif i == len(threshold):
                     times[i].append((time, event))
 
-            #if value < threshold:
-            #    times[0].append((time, event))
-            #else:
-            #    times[1].append((time, event))
+        #Special case when median actually equals a lot of values, will happen when you have many tail-censored
+        if even:
+            remove_list = [[] for _ in range(len(times))]
+            for i in xrange(1, len(times)):
+                for j in xrange(len(times[i])):
+                    if times[i][j][0] == threshold[i - 1] and len(times[i]) >= len(times[i - 1]) + 2:
+                        times[i - 1].append(times[i][j])
+                        remove_list[i].append(j)
+            for i in xrange(len(remove_list)):
+                for j in sorted(remove_list[i], reverse = True):
+                    times[i].pop(j)
 
         for i in xrange(len(times)):
             times[i] = sorted(times[i], key = lambda x: x[0])
-        #times[0] = sorted(times[0], key = lambda x: x[0])
-        #times[1] = sorted(times[1], key = lambda x: x[0])
 
         #Now make list of all time indices, this is just a convenience for plotting points
         all_times = []
