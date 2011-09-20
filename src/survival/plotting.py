@@ -123,7 +123,7 @@ def kaplanmeier(data = None, time_column = None, event_column = None, output_col
         #leg = ax.legend(ps, labels, 'lower left')
         ax.set_xlabel("Time, years")
         ax.set_ylabel("Survival ratio")
-        ax.set_title("Kaplan-Meier survival curve\nThresholds: " + str([str(t)[:4] for t in threshold]))
+        ax.set_title("Kaplan-Meier survival curve\nThresholds: " + str([str(t)[:4] for t in sorted(threshold, reverse = True)]))
 
         #Add a few values to the right side of the plot
         final_ticks = []
