@@ -6,7 +6,7 @@ except ImportError:
 import numpy as np
 from random import random
 
-def kaplanmeier(data = None, time_column = None, event_column = None, output_column = None, time_array = None, event_array = None, output_array = None, threshold = None, even = True):
+def kaplanmeier(data = None, time_column = None, event_column = None, output_column = None, time_array = None, event_array = None, output_array = None, threshold = None, even = False):
     ''' Idea is to plot number of patients still alive on the y-axis,
     against the time on the x-axis. The time column specifies which
     axis is the time. Event column should be a binary value, indicating
@@ -81,8 +81,11 @@ def kaplanmeier(data = None, time_column = None, event_column = None, output_col
         all_times = sorted(all_times, key = lambda x: x[0])
         #all_times = sorted(times[0] + times[1], key = lambda x: x[0])
 
+        ticklabels = ["{0}y".format(year) for year in xrange(int(all_times[-1][0]) + 1)]
+
         #Count how many are alive at each time
-        for i in xrange(len(times)):
+        for i in sorted(xrange(len(times)), reverse = True): #Take best survivors first
+            prev = -1
             for time, event in all_times:
                 count = 0.0
                 total = 0.0
@@ -97,9 +100,14 @@ def kaplanmeier(data = None, time_column = None, event_column = None, output_col
                 else:
                     alive[i].append(count / total) # Probability
                 #alive[i].append(count) # Actual counts
+                if int(time) > prev:
+                    prev = int(time)
+                    ticklabels[prev] += '\n{0}'.format(int(count))
+                    #ticklabels[prev] = ticklabels[prev].strip() #Remove possible leading new line on first row
 
         #Now plot times vs alive
         fig = plt.figure()
+        fig.subplots_adjust(bottom = 0.22) #Move the plot up a bit so x-axis labels fit
         ax = fig.add_subplot(111)
         ps = []
         labels = []
@@ -110,12 +118,30 @@ def kaplanmeier(data = None, time_column = None, event_column = None, output_col
 
         for i in reversed(xrange(len(alive))): #Do best chance first, so they appear highest in legend
             ps.append(ax.plot([x[0] for x in all_times], alive[i], styles[i]))
-            labels.append(str(alive[i][-1]))
+            labels.append(str(alive[i][-1])[:4])
 
-        leg = ax.legend(ps, labels, 'lower left')
+        #leg = ax.legend(ps, labels, 'lower left')
         ax.set_xlabel("Time, years")
         ax.set_ylabel("Survival ratio")
-        ax.set_title("Kaplan-Meier survival curve\nThresholds: " + str(threshold))
+        ax.set_title("Kaplan-Meier survival curve\nThresholds: " + str([str(t)[:4] for t in threshold]))
+
+        #Add a few values to the right side of the plot
+        final_ticks = []
+        lower = 1.0
+        for i in reversed(xrange(len(alive))):
+            final_ticks.append(alive[i][-1])
+            if alive[i][-1] < lower:
+                lower = alive[i][-1]
+        ax_right = plt.twinx(ax)
+        ax_right.set_yticks(final_ticks)
+        ax_right.set_yticklabels(labels)
+
+        #Set limits on both
+        ax.set_ylim(ymin = lower, ymax = 1.0)
+        ax_right.set_ylim(ymin = lower, ymax = 1.0)
+
+        #Add patient counts
+        ax.set_xticklabels(ticklabels)
 
         return threshold
 
