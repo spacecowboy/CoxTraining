@@ -1,10 +1,12 @@
+from __future__ import division
 from kalderstam.util.filehandling import read_data_file, parse_data
 try:
     import matplotlib.pyplot as plt
+    import matplotlib.cm as cm
 except ImportError:
     plt = None #This makes matplotlib optional
+    cm = None
 import numpy as np
-from random import random
 
 def show():
     '''
@@ -155,6 +157,30 @@ def kaplanmeier(data = None, time_column = None, event_column = None, output_col
 
         return threshold
 
+def scatter(data_x, data_y, events = None, show_plot = True, gridsize = 50, mincnt = 0, x_label = '', y_label = ''):
+    '''
+    Gridsize determines how many hexagonal bins are used (on the x-axis. Y-axis is determined automatically to match)
+    mincnt is the minimum number of hits a bin needs to be plotted.
+    '''
+    xmin = data_x.min()
+    xmax = data_x.max()
+    ymin = data_y.min()
+    ymax = data_y.max()
+
+    fig = plt.figure()
+    ax = fig.add_subplot(111)
+    pc = ax.hexbin(data_x, data_y, bins = 'log', cmap = cm.jet, gridsize = gridsize, mincnt = mincnt)
+    ax.axis([xmin, xmax, ymin, ymax])
+    ax.set_title("Scatter plot heatmat, logarithmic count")
+    ax.set_xlabel(x_label)
+    ax.set_ylabel(y_label)
+    cb = fig.colorbar(pc, ax = ax)
+    cb.set_label('log10(N)')
+
+    if show_plot:
+        show()
+
+
 if __name__ == '__main__':
     import sys
     if len(sys.argv) < 2:
@@ -166,4 +192,6 @@ if __name__ == '__main__':
     data = np.array(read_data_file(filename, ","))
     D, t = parse_data(data, inputcols = (2, 3, 4, 5, 6, 7, 8, 9, 10), ignorerows = [0], normalize = False)
 
-    kaplanmeier(D, 2, 3, -1)
+    kaplanmeier(D, 2, 3, -1, show_plot = False)
+
+
