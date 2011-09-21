@@ -6,7 +6,14 @@ except ImportError:
 import numpy as np
 from random import random
 
-def kaplanmeier(data = None, time_column = None, event_column = None, output_column = None, time_array = None, event_array = None, output_array = None, threshold = None, even = False):
+def show():
+    '''
+    Show plots which have been drawn but not displayed yet. Simply a call to matplotlib.pyplot's show()
+    '''
+    if plt:
+        plt.show()
+
+def kaplanmeier(data = None, time_column = None, event_column = None, output_column = None, time_array = None, event_array = None, output_array = None, threshold = None, even = False, show_plot = True):
     ''' Idea is to plot number of patients still alive on the y-axis,
     against the time on the x-axis. The time column specifies which
     axis is the time. Event column should be a binary value, indicating
@@ -143,6 +150,9 @@ def kaplanmeier(data = None, time_column = None, event_column = None, output_col
         #Add patient counts
         ax.set_xticklabels(ticklabels)
 
+        if show_plot:
+            show()
+
         return threshold
 
 if __name__ == '__main__':
@@ -157,5 +167,3 @@ if __name__ == '__main__':
     D, t = parse_data(data, inputcols = (2, 3, 4, 5, 6, 7, 8, 9, 10), ignorerows = [0], normalize = False)
 
     kaplanmeier(D, 2, 3, -1)
-    if plt:
-        plt.show()
