@@ -159,23 +159,40 @@ def kaplanmeier(data = None, time_column = None, event_column = None, output_col
 
 def scatter(data_x, data_y, events = None, show_plot = True, gridsize = 50, mincnt = 0, x_label = '', y_label = ''):
     '''
+    It is assumed that the x-axis contains the target data, and y-axis the computed outputs.
+    If events is not None, then any censored data (points with a zero in events) will not be able to go above the diagonal.
+    Reason for that being that a censored data is "correct" if the output for that data is greater or equal to the diagonal point.
     Gridsize determines how many hexagonal bins are used (on the x-axis. Y-axis is determined automatically to match)
     mincnt is the minimum number of hits a bin needs to be plotted.
     '''
+    if not len(data_x) == len(data_y) or (events is not None and not len(data_x) == len(events)):
+        raise ValueError('Lengths of arrays do not match!')
+
     xmin = data_x.min()
     xmax = data_x.max()
     ymin = data_y.min()
     ymax = data_y.max()
 
+    if events is not None:
+        x_range = xmax - xmin
+        y_range = ymax - ymin
+        slope = y_range / x_range
+        for event, i in zip(events, xrange(len(data_y))):
+            diagonal_point = ymin + slope * (data_x[i] - xmin)
+            if event == 0 and data_y[i] > diagonal_point:
+                #print('Shifting {0},{1} to {2}'.format(data_x[i], data_y[i], diagonal_point))
+                data_y[i] = diagonal_point
+
     fig = plt.figure()
     ax = fig.add_subplot(111)
     pc = ax.hexbin(data_x, data_y, bins = 'log', cmap = cm.jet, gridsize = gridsize, mincnt = mincnt)
     ax.axis([xmin, xmax, ymin, ymax])
-    ax.set_title("Scatter plot heatmat, logarithmic count")
+    ax.set_title("Scatter plot heatmat, taking censored into account") if events is not None else ax.set_title("Scatter plot heatmat")
     ax.set_xlabel(x_label)
     ax.set_ylabel(y_label)
     cb = fig.colorbar(pc, ax = ax)
     cb.set_label('log10(N)')
+    #ax.plot([xmin, xmax], [ymin, ymax], 'r-') #Print slope
 
     if show_plot:
         show()
