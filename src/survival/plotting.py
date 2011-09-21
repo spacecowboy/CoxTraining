@@ -187,7 +187,7 @@ def scatter(data_x, data_y, events = None, show_plot = True, gridsize = 50, minc
     ax = fig.add_subplot(111)
     pc = ax.hexbin(data_x, data_y, bins = 'log', cmap = cm.jet, gridsize = gridsize, mincnt = mincnt)
     ax.axis([xmin, xmax, ymin, ymax])
-    ax.set_title("Scatter plot heatmat, taking censored into account") if events is not None else ax.set_title("Scatter plot heatmat")
+    ax.set_title("Scatter plot heatmap, taking censored into account") if events is not None else ax.set_title("Scatter plot heatmap")
     ax.set_xlabel(x_label)
     ax.set_ylabel(y_label)
     cb = fig.colorbar(pc, ax = ax)
