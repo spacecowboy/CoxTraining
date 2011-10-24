@@ -34,7 +34,7 @@ static PyObject *get_C_index(PyObject *self, PyObject *args)
 		Tx1 = *(double *) PyArray_GETPTR2(T, countx, 1);
 		outputsx0 = *(double *) PyArray_GETPTR2(outputs, countx, 0);
 		
-		for(county = countx + 1; county < max; county++) {
+		for(county = 0; county < max; county++) {
 			if(countx == county)
 			    continue;
 	                // Boilerplate
@@ -43,27 +43,20 @@ static PyObject *get_C_index(PyObject *self, PyObject *args)
 			outputsy0 = *(double *) PyArray_GETPTR2(outputs, county, 0);
 			
 			if(Tx1 == 1 && Ty1 == 1) { //Non-censored, compare with all other non-censored
-				total++;
-				if ( (Tx0 <= Ty0 && outputsx0 <= outputsy0) ||
-						(Ty0 <= Tx0 && outputsy0 <= outputsx0) )
-					sum++;
+				if (Tx0 < Ty0) {
+					total++;
+					if (outputsx0 < outputsy0) {
+						sum++;
+					}
+				}
 			}
-			else if(Tx1 == 1 || Ty1 == 1) { //Non-censored and censored. Compare if
+			else if(Tx1 == 1) { //Non-censored and censored. Compare if
 				// Compare noncensored with later censored
-				if(Tx1 == 1) {
-					// X noncensored
-					if(Tx0 <= Ty0) {
-						total++;
-						if(outputsx0 <= outputsy0)
-							sum++;
-					}
-				} else {
-					// Y noncensored
-					if(Ty0 <= Tx0) {
-						total++;
-						if(outputsy0 <= outputsx0)
-							sum++;
-					}
+				// X noncensored
+				if(Tx0 < Ty0) {
+					total++;
+					if(outputsx0 < outputsy0)
+						sum++;
 				}
 			}
 		}

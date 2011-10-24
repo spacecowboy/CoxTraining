@@ -4,6 +4,7 @@ Created on Sep 1, 2011
 @author: jonask
 '''
 
+from __future__ import division
 #Defines the node, and the network
 import numpy
 from kalderstam.neural.fast_network import Node as node
@@ -69,18 +70,25 @@ class committee(normal_com):
             #Now sort the set
             net.trn_set = numpy.sort(net.trn_set)
 
-    def risk_eval(self, input):
+    def risk_eval(self, input, net = None):
         '''
-        Returns the average index value for input over all members of the committee.
+        Returns the average index value for input over all members of the committee, unless net is specified
+        it will then perform a risk_eval for that network only (doesn't have to be a member even)
         '''
-        avg_index = 0.0
-        for net in self.nets:
+        if net is None:
+            avg_index = 0.0
+            for net in self.nets:
+                output = net.update(input)
+                index = len(net.trn_set[net.trn_set < output]) # Length of the array of all values less than output = index where output would be placed
+                #Normalize it
+                avg_index += index / float((len(net.trn_set) + 1)) # +1 to make sure the maximum is 1.0 if the input is placed last
+
+            return avg_index / float(len(self))
+        else:
             output = net.update(input)
             index = len(net.trn_set[net.trn_set < output]) # Length of the array of all values less than output = index where output would be placed
             #Normalize it
-            avg_index += index / float((len(net.trn_set) + 1)) # +1 to make sure the maximum is 1.0 if the input is placed last
-
-        return avg_index / float(len(self))
+            return index / (len(net.trn_set) + 1)
 
 class network(normal_net):
     '''

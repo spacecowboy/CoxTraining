@@ -31,16 +31,13 @@ def get_C_index(T, outputs):
             if x == y:
                 continue #Don't compare with itself
             if T[x, 1] == 1 and (T[y, 1] == 1): #Non-censored, compare with all other non-censored
-                total += 1
-                if outputs[x, 0] >= outputs[y, 0] and T[x, 0] >= T[y, 0] or outputs[x, 0] <= outputs[y, 0] and T[x, 0] <= T[y, 0]:
-                    sum += 1
-            elif T[x, 1] == 1 and (T[y, 1] == 0) and T[x, 0] <= T[y, 0]: #Non-censored, compare with later censored
+                if T[x, 0] < T[y, 0]: #all non-censored will be compared eventually, but only once
+                    total += 1
+                    if outputs[x, 0] < outputs[y, 0]:
+                        sum += 1
+            elif T[x, 1] == 1 and (T[y, 1] == 0) and T[x, 0] < T[y, 0]: #Non-censored, compare with later censored
                 total += 1
                 if outputs[x, 0] <= outputs[y, 0]:
-                    sum += 1
-            elif T[x, 1] == 0 and T[y, 1] == 1 and T[x, 0] >= T[y, 0]: #Censored, compare only with earlier non-censored
-                total += 1
-                if outputs[x, 0] >= outputs[y, 0]:
                     sum += 1
 
     sum /= float(total)

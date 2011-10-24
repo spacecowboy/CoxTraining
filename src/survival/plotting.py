@@ -173,11 +173,52 @@ def scatter(data_x, data_y, events = None, show_plot = True, gridsize = 50, minc
     ymin = data_y.min()
     ymax = data_y.max()
 
+    #data_c = None
+    #reducer = np.mean
+
     if events is not None:
+        #This part limits the contribution of a censored data, as it contributes in the C-Index
+        #and limits the position of censored data
+#        def Reducer(x):
+#            result = np.mean(x)
+#            print result
+#            return result
+#            #print x
+#            #return x / max(x)
+#        reducer = Reducer
+#        data_c = np.ones(len(data_x)) #Default value is 100% contribution
+#        sorted_list = sorted(zip(range(len(data_x)), data_x), key = lambda x:x[1])
+#        sorted_index = sorted(zip(range(len(sorted_list)), sorted_list), key = lambda x:x[1][0])
+#
         x_range = xmax - xmin
         y_range = ymax - ymin
         slope = y_range / x_range
         for event, i in zip(events, xrange(len(data_y))):
+#            #Set the contribution
+#            if event == 0:
+#                pre_non_censored = np.array([True if events[j[0]] == 1 else False for j in sorted_list[:sorted_index[i][0]]])
+#                count_pre_non_censored = len(data_x[pre_non_censored])
+#                count_all = len(data_x)
+#
+#                count_all_non_censored = len(data_x[events == 1]) - 1
+#
+#                #data_c[i] = count_pre_non_censored / count_all
+#                data_c[i] = count_pre_non_censored / count_all_non_censored
+#
+#            else:
+#                count_all_non_censored = len(data_x[events == 1]) - 1
+#
+#                later_censored = np.array([True if events[j[0]] == 0 else False for j in sorted_list[sorted_index[i][0]:]])
+#                count_later_censored = len(data_x[later_censored])
+#
+#                count_comparisons = count_all_non_censored# + count_later_censored
+#
+#                count_all = len(data_x)
+#
+#                #data_c[i] = count_comparisons / count_all
+#                data_c[i] = 1.0
+
+            #Move the point if necessary
             diagonal_point = ymin + slope * (data_x[i] - xmin)
             if event == 0 and data_y[i] > diagonal_point:
                 #print('Shifting {0},{1} to {2}'.format(data_x[i], data_y[i], diagonal_point))
