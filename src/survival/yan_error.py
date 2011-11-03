@@ -5,6 +5,14 @@ Created on Nov 3, 2011
 
 Based on the paper of Lian Yan, David Verbel and Olivier Saidi: Predicting Prostate Cancer Recurrence via Maximizing the concordance Index
 '''
+from __future__ import division
+
+def block_func(inputs, targets, block_size, outputs, block_members, valid_pairs, weighted_sum):
+    '''If not equal to all, must recompute valid_pairs and weighted sum'''
+    if block_size == 0 or block_size == len(targets):
+        return {'valid_pairs': valid_pairs, 'weighted_sum': weighted_sum}
+    else:
+        return pre_loop_func(None, None, targets[block_members], block_size)
 
 def epoch_func(net, test_inputs, test_targets, block_size, epoch, valid_pairs, weighted_sum):
     '''Only passes the pre_loop variables on so they get into total_error'''
@@ -21,6 +29,7 @@ def pre_loop_func(net, inputs, targets, block_size):
                     valid_pairs.append((i, j))
 
     D = sum_of_weighted_comparisons(targets, valid_pairs)
+
     return {'valid_pairs': valid_pairs, 'weighted_sum' : D}
 
 def weighted_comparison(target_i, target_j):
@@ -84,7 +93,7 @@ def derivative(targets, outputs, diff_index, valid_pairs, weighted_sum):
     #Now the top side
     top = 0
     for i, j in valid_pairs:
-        top += diff_weighted_comparison(i, diff_index) * soft_comparison(outputs[i, 0], outputs[j, 0]) - weighted_comparison(targets[i, 0], targets[j, 0]) * diff_soft_comparison(outputs, i, j, diff_index)
+        top += diff_weighted_comparison(i, diff_index) * soft_comparison(outputs[i, 0], outputs[j, 0]) + weighted_comparison(targets[i, 0], targets[j, 0]) * diff_soft_comparison(outputs, i, j, diff_index)
     dCw += top / weighted_sum
 
     return dCw
