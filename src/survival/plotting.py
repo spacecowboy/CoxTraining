@@ -1,6 +1,8 @@
 from __future__ import division
 from kalderstam.util.filehandling import read_data_file, parse_data
 try:
+    import matplotlib
+    matplotlib.use('Agg') #Only want to save images
     import matplotlib.pyplot as plt
     import matplotlib.cm as cm
 except ImportError:
@@ -212,6 +214,7 @@ def scatter(data_x, data_y, events = None, show_plot = True, gridsize = 30, minc
         ymax = non_censored_y.max()
         
         slope, cut = calc_line(non_censored_x, non_censored_y)
+        print slope, cut
         
         #And then no censored point can climb above the diagonal. Their value is the percentage of their comparisons
         #in the C-index which are successful
@@ -242,12 +245,12 @@ def scatter(data_x, data_y, events = None, show_plot = True, gridsize = 30, minc
     line_eq = "Line: {m:.3f} * x + {c:.3f}".format(m=slope, c=cut)
     ax.set_title("Scatter plot heatmap, taking censored into account\n" + line_eq) if events is not None else \
         ax.set_title("Scatter plot heatmap\n" + line_eq)
-    ax.set_xlabel(x_label)
-    ax.set_ylabel(y_label)
     cb = fig.colorbar(pc, ax = ax)
     cb.set_label('log10(N)')
     ax.plot(sorted_x_y[:, 0], slope*sorted_x_y[:, 0] + cut, 'r-') #Print slope
     #ax.scatter(sorted_x_y[:, 0], sorted_x_y[:, 1], c='g')
+    ax.set_xlabel(x_label)
+    ax.set_ylabel(y_label)
 
     if show_plot:
         show()
@@ -258,7 +261,8 @@ if __name__ == '__main__':
     if len(sys.argv) < 2:
         #filename = "/home/gibson/jonask/Projects/Kaplan-Meier/genetic.csv"
         #filename = "/home/gibson/jonask/Projects/Kaplan-Meier/censored_3node.csv"
-        filename = "/home/gibson/jonask/Projects/Experiments/src/cox_com_3tanh_output"
+        #filename = "/home/gibson/jonask/Projects/Experiments/src/cox_com_3tanh_output"
+        filename = "/home/gibson/jonask/Projects/survival_modeler/.test_output.cvs"
     else:
         filename = sys.argv[1]
 
