@@ -239,7 +239,7 @@ def scatter(data_x, data_y, events = None, show_plot = True, gridsize = 30, minc
     pc = ax.hexbin(sorted_x_y[:, 0], sorted_x_y[:, 1], bins = 'log', cmap = cm.jet,
                    gridsize = gridsize, mincnt = mincnt)
     ax.axis([xmin, xmax, ymin, ymax])
-    line_eq = "Line: {m:.3} * x + {c:.3}".format(m=slope, c=cut)
+    line_eq = "Line: {m:.3f} * x + {c:.3f}".format(m=slope, c=cut)
     ax.set_title("Scatter plot heatmap, taking censored into account\n" + line_eq) if events is not None else \
         ax.set_title("Scatter plot heatmap\n" + line_eq)
     ax.set_xlabel(x_label)
