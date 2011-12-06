@@ -3,6 +3,7 @@ from kalderstam.util.filehandling import read_data_file, parse_data
 try:
     import matplotlib.pyplot as plt
     import matplotlib.cm as cm
+    from matplotlib.ticker import MaxNLocator
 except ImportError:
     plt = None #This makes matplotlib optional
     cm = None
@@ -150,6 +151,14 @@ def kaplanmeier(data = None, time_column = None, event_column = None, output_col
         ax_right.set_ylim(ymin = lower, ymax = 1.0)
 
         #Add patient counts
+        #Nicest to give only about 6
+        #print(ticklabels)
+        #if (len(ticklabels) - 1) % 6 == 0:
+        #    n = int((len(ticklabels) - 1) / 6)
+        #    ticklabels = [ticklabels[n * i] for i in xrange(7)]
+        #ax.xaxis.set_major_locator(MaxNLocator(len(ticklabels) - 0))
+
+        #print(ticklabels)
         ax.set_xticklabels(ticklabels)
 
         if show_plot:
