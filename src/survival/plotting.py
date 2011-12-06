@@ -266,6 +266,6 @@ if __name__ == '__main__':
     D, t = parse_data(data, inputcols = (0, 1, 2), ignorerows = [0], normalize = False)
 
     kaplanmeier(D, 0, 2, 1, show_plot = False)
-    scatter(D[:, 0], D[:, 1], D[:, 2], x_label = 'Target Data', y_label = 'Model Output', show_plot = False)
+    scatter(D[:, 0], D[:, 1], D[:, 2], x_label = 'Target Data', y_label = 'Model Correlation', show_plot = False)
     scatter(D[:, 0], D[:, 1], x_label = 'Target Data', y_label = 'Model Output')
     
