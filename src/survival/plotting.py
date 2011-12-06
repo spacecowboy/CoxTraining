@@ -3,7 +3,6 @@ from kalderstam.util.filehandling import read_data_file, parse_data
 try:
     import matplotlib.pyplot as plt
     import matplotlib.cm as cm
-    from matplotlib.ticker import MaxNLocator
 except ImportError:
     plt = None #This makes matplotlib optional
     cm = None
@@ -16,7 +15,8 @@ def show():
     if plt:
         plt.show()
 
-def kaplanmeier(data = None, time_column = None, event_column = None, output_column = None, time_array = None, event_array = None, output_array = None, threshold = None, even = False, show_plot = True):
+def kaplanmeier(data = None, time_column = None, event_column = None, output_column = None, time_array = None,
+                event_array = None, output_array = None, threshold = None, even = False, show_plot = True):
     ''' Idea is to plot number of patients still alive on the y-axis,
     against the time on the x-axis. The time column specifies which
     axis is the time. Event column should be a binary value, indicating
@@ -133,7 +133,8 @@ def kaplanmeier(data = None, time_column = None, event_column = None, output_col
         #leg = ax.legend(ps, labels, 'lower left')
         ax.set_xlabel("Time, years")
         ax.set_ylabel("Survival ratio")
-        ax.set_title("Kaplan-Meier survival curve\nThresholds: " + str([str(t)[:4] for t in sorted(threshold, reverse = True)]))
+        ax.set_title("Kaplan-Meier survival curve\nThresholds: " + str([str(t)[:4] for t in sorted(threshold,
+                                                                        reverse = True)]))
 
         #Add a few values to the right side of the plot
         final_ticks = []
@@ -165,12 +166,22 @@ def kaplanmeier(data = None, time_column = None, event_column = None, output_col
             show()
 
         return threshold
+        
+def calc_line(x, y):
+    '''
+    y = mx + c
+    We can rewrite the line equation as y = Ap, where A = [[x 1]] and p = [[m], [c]]. Now use lstsq to solve for p:
+    Returns m, c
+    '''
+    A = np.vstack([x, np.ones(len(x))]).T
+    return np.linalg.lstsq(A, y)[0]
 
-def scatter(data_x, data_y, events = None, show_plot = True, gridsize = 50, mincnt = 0, x_label = '', y_label = ''):
+def scatter(data_x, data_y, events = None, show_plot = True, gridsize = 30, mincnt = 0, x_label = '', y_label = ''):
     '''
     It is assumed that the x-axis contains the target data, and y-axis the computed outputs.
     If events is not None, then any censored data (points with a zero in events) will not be able to go above the diagonal.
     Reason for that being that a censored data is "correct" if the output for that data is greater or equal to the diagonal point.
+    The diagonal is calculated from the non-censored data (all if no events specified) using least squares linear regression.
     Gridsize determines how many hexagonal bins are used (on the x-axis. Y-axis is determined automatically to match)
     mincnt is the minimum number of hits a bin needs to be plotted.
     '''
@@ -181,68 +192,62 @@ def scatter(data_x, data_y, events = None, show_plot = True, gridsize = 50, minc
     xmax = data_x.max()
     ymin = data_y.min()
     ymax = data_y.max()
-
-    #data_c = None
-    #reducer = np.mean
+    
+    #For plotting reasons, we need to have these sorted
+    if events is None:
+        sorted_x_y = [[data_x[i], data_y[i]] for i in xrange(len(data_x))]
+    else:
+        sorted_x_y = [[data_x[i], data_y[i], events[i]] for i in xrange(len(data_x))]
+    sorted_x_y.sort(lambda x, y: cmp(x[0], y[0])) #Sort on target data
+    sorted_x_y = np.array(sorted_x_y)
+    #Calculate the regression line (if events is None weneed it later)
+    slope, cut = calc_line(sorted_x_y[:, 0], sorted_x_y[:, 1])
 
     if events is not None:
-        #This part limits the contribution of a censored data, as it contributes in the C-Index
-        #and limits the position of censored data
-#        def Reducer(x):
-#            result = np.mean(x)
-#            print result
-#            return result
-#            #print x
-#            #return x / max(x)
-#        reducer = Reducer
-#        data_c = np.ones(len(data_x)) #Default value is 100% contribution
-#        sorted_list = sorted(zip(range(len(data_x)), data_x), key = lambda x:x[1])
-#        sorted_index = sorted(zip(range(len(sorted_list)), sorted_list), key = lambda x:x[1][0])
-#
-        x_range = xmax - xmin
-        y_range = ymax - ymin
-        slope = y_range / x_range
-        for event, i in zip(events, xrange(len(data_y))):
-#            #Set the contribution
-#            if event == 0:
-#                pre_non_censored = np.array([True if events[j[0]] == 1 else False for j in sorted_list[:sorted_index[i][0]]])
-#                count_pre_non_censored = len(data_x[pre_non_censored])
-#                count_all = len(data_x)
-#
-#                count_all_non_censored = len(data_x[events == 1]) - 1
-#
-#                #data_c[i] = count_pre_non_censored / count_all
-#                data_c[i] = count_pre_non_censored / count_all_non_censored
-#
-#            else:
-#                count_all_non_censored = len(data_x[events == 1]) - 1
-#
-#                later_censored = np.array([True if events[j[0]] == 0 else False for j in sorted_list[sorted_index[i][0]:]])
-#                count_later_censored = len(data_x[later_censored])
-#
-#                count_comparisons = count_all_non_censored# + count_later_censored
-#
-#                count_all = len(data_x)
-#
-#                #data_c[i] = count_comparisons / count_all
-#                data_c[i] = 1.0
+        #We must calculate the diagonal from the non-censored
+        non_censored_x = sorted_x_y[:, 0][sorted_x_y[:, 2] == 1]
+        non_censored_y = sorted_x_y[:, 1][sorted_x_y[:, 2] == 1]
+        
+        ymin = non_censored_y.min()
+        ymax = non_censored_y.max()
+        
+        slope, cut = calc_line(non_censored_x, non_censored_y)
+        
+        #And then no censored point can climb above the diagonal. Their value is the percentage of their comparisons
+        #in the C-index which are successful
+        for i in xrange(len(sorted_x_y)):
+            target, output, event = sorted_x_y[i]
+            if event == 0:
+                #Compare with all previous non-censored and calculate ratio of correct comparisons
+                total = num_of_correct = 0
+                for prev_target, prev_output, prev_event in sorted_x_y[:i]:
+                    if prev_event == 1:
+                        total += 1
+                        if prev_output <= output: #cmp(prev_output, output) < 1
+                            num_of_correct += 1
+                            
+                #Now we have the ratio
+                ratio = num_of_correct / total
+                
+                #Move the point
+                diagonal_point = cut + slope * target
+                sorted_x_y[i][1] = ymin + ratio * (diagonal_point - ymin)
 
-            #Move the point if necessary
-            diagonal_point = ymin + slope * (data_x[i] - xmin)
-            if event == 0 and data_y[i] > diagonal_point:
-                #print('Shifting {0},{1} to {2}'.format(data_x[i], data_y[i], diagonal_point))
-                data_y[i] = diagonal_point
-
+    
     fig = plt.figure()
     ax = fig.add_subplot(111)
-    pc = ax.hexbin(data_x, data_y, bins = 'log', cmap = cm.jet, gridsize = gridsize, mincnt = mincnt)
+    pc = ax.hexbin(sorted_x_y[:, 0], sorted_x_y[:, 1], bins = 'log', cmap = cm.jet,
+                   gridsize = gridsize, mincnt = mincnt)
     ax.axis([xmin, xmax, ymin, ymax])
-    ax.set_title("Scatter plot heatmap, taking censored into account") if events is not None else ax.set_title("Scatter plot heatmap")
+    line_eq = "Line: {m:.3} * x + {c:.3}".format(m=slope, c=cut)
+    ax.set_title("Scatter plot heatmap, taking censored into account\n" + line_eq) if events is not None else \
+        ax.set_title("Scatter plot heatmap\n" + line_eq)
     ax.set_xlabel(x_label)
     ax.set_ylabel(y_label)
     cb = fig.colorbar(pc, ax = ax)
     cb.set_label('log10(N)')
-    #ax.plot([xmin, xmax], [ymin, ymax], 'r-') #Print slope
+    ax.plot(sorted_x_y[:, 0], slope*sorted_x_y[:, 0] + cut, 'r-') #Print slope
+    #ax.scatter(sorted_x_y[:, 0], sorted_x_y[:, 1], c='g')
 
     if show_plot:
         show()
@@ -252,13 +257,15 @@ if __name__ == '__main__':
     import sys
     if len(sys.argv) < 2:
         #filename = "/home/gibson/jonask/Projects/Kaplan-Meier/genetic.csv"
-        filename = "/home/gibson/jonask/Projects/Kaplan-Meier/censored_3node.csv"
+        #filename = "/home/gibson/jonask/Projects/Kaplan-Meier/censored_3node.csv"
+        filename = "/home/gibson/jonask/Projects/Experiments/src/cox_com_3tanh_output"
     else:
         filename = sys.argv[1]
 
-    data = np.array(read_data_file(filename, ","))
-    D, t = parse_data(data, inputcols = (2, 3, 4, 5, 6, 7, 8, 9, 10), ignorerows = [0], normalize = False)
+    data = np.array(read_data_file(filename, "\t"))
+    D, t = parse_data(data, inputcols = (0, 1, 2), ignorerows = [0], normalize = False)
 
-    kaplanmeier(D, 2, 3, -1, show_plot = False)
-
-
+    kaplanmeier(D, 0, 2, 1, show_plot = False)
+    scatter(D[:, 0], D[:, 1], D[:, 2], x_label = 'Target Data', y_label = 'Model Output', show_plot = False)
+    scatter(D[:, 0], D[:, 1], x_label = 'Target Data', y_label = 'Model Output')
+    
