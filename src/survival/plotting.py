@@ -2,7 +2,7 @@ from __future__ import division
 from kalderstam.util.filehandling import read_data_file, parse_data
 try:
     import matplotlib
-    matplotlib.use('Agg') #Only want to save images
+    matplotlib.use('GTKAgg')
     import matplotlib.pyplot as plt
     import matplotlib.cm as cm
 except ImportError:
@@ -133,11 +133,12 @@ def kaplanmeier(data = None, time_column = None, event_column = None, output_col
             labels.append(str(alive[i][-1])[:4])
 
         #leg = ax.legend(ps, labels, 'lower left')
+        ax.grid(True, 'both')
         ax.set_xlabel("Time, years")
         ax.set_ylabel("Survival ratio")
         ax.set_title("Kaplan-Meier survival curve\nThresholds: " + str([str(t)[:4] for t in sorted(threshold,
                                                                         reverse = True)]))
-
+        
         #Add a few values to the right side of the plot
         final_ticks = []
         lower = 1.0
@@ -152,17 +153,22 @@ def kaplanmeier(data = None, time_column = None, event_column = None, output_col
         #Set limits on both
         ax.set_ylim(ymin = lower, ymax = 1.0)
         ax_right.set_ylim(ymin = lower, ymax = 1.0)
-
-        #Add patient counts
-        #Nicest to give only about 6
-        #print(ticklabels)
-        #if (len(ticklabels) - 1) % 6 == 0:
-        #    n = int((len(ticklabels) - 1) / 6)
-        #    ticklabels = [ticklabels[n * i] for i in xrange(7)]
-        #ax.xaxis.set_major_locator(MaxNLocator(len(ticklabels) - 0))
-
-        #print(ticklabels)
-        ax.set_xticklabels(ticklabels)
+        ax.minorticks_on()
+        
+        #Se the ticklabels
+        major_num = len(ax.get_xmajorticklabels())
+        major_ticks = []
+        minor_ticks = []
+        for label, tick_index in zip(ticklabels, xrange(len(ticklabels))):
+            #major_num includes the first zero, so minus one
+            if tick_index == 0 or tick_index % (major_num - 1) == 0:
+                major_ticks.append(label)
+            else:
+                minor_ticks.append(label)
+                
+        ax.set_xticklabels(major_ticks, minor=False)
+        #Don't set the minor ticks, it becomes too much text. But if desired, uncomment this line
+        #ax.set_xticklabels(minor_ticks, minor=True)
 
         if show_plot:
             show()
@@ -214,7 +220,6 @@ def scatter(data_x, data_y, events = None, show_plot = True, gridsize = 30, minc
         ymax = non_censored_y.max()
         
         slope, cut = calc_line(non_censored_x, non_censored_y)
-        print slope, cut
         
         #And then no censored point can climb above the diagonal. Their value is the percentage of their comparisons
         #in the C-index which are successful
@@ -262,7 +267,8 @@ if __name__ == '__main__':
         #filename = "/home/gibson/jonask/Projects/Kaplan-Meier/genetic.csv"
         #filename = "/home/gibson/jonask/Projects/Kaplan-Meier/censored_3node.csv"
         #filename = "/home/gibson/jonask/Projects/Experiments/src/cox_com_3tanh_output"
-        filename = "/home/gibson/jonask/Projects/survival_modeler/.test_output.cvs"
+        filename = "/home/gibson/jonask/Dropbox/Ann-Survival-Phd/publication_data/ann/" + \
+                    ".test_.(15, \"'tanh'\")_1323233958_Two_thirds_of_the_n4369_dataset_with_logs_lymf.cvs"
     else:
         filename = sys.argv[1]
 
