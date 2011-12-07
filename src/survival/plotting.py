@@ -157,14 +157,19 @@ def kaplanmeier(data = None, time_column = None, event_column = None, output_col
         
         #Se the ticklabels
         major_num = len(ax.get_xmajorticklabels())
+        minor_num = len(ax.get_xminorticklabels())
+        print major_num, minor_num, len(ticklabels)
         major_ticks = []
         minor_ticks = []
-        for label, tick_index in zip(ticklabels, xrange(len(ticklabels))):
-            #major_num includes the first zero, so minus one
-            if tick_index == 0 or tick_index % (major_num - 1) == 0:
-                major_ticks.append(label)
-            else:
-                minor_ticks.append(label)
+        if len(ticklabels) == major_num:
+            major_ticks = ticklabels
+        else:
+            for label, tick_index in zip(ticklabels, xrange(len(ticklabels))):
+                #major_num includes the first zero, so minus one
+                if tick_index == 0 or tick_index % (major_num - 1) == 0:
+                    major_ticks.append(label)
+                else:
+                    minor_ticks.append(label)
                 
         ax.set_xticklabels(major_ticks, minor=False)
         #Don't set the minor ticks, it becomes too much text. But if desired, uncomment this line
@@ -268,7 +273,7 @@ if __name__ == '__main__':
         #filename = "/home/gibson/jonask/Projects/Kaplan-Meier/censored_3node.csv"
         #filename = "/home/gibson/jonask/Projects/Experiments/src/cox_com_3tanh_output"
         filename = "/home/gibson/jonask/Dropbox/Ann-Survival-Phd/publication_data/ann/" + \
-                    ".test_.(15, \"'tanh'\")_1323233958_Two_thirds_of_the_n4369_dataset_with_logs_lymf.cvs"
+                    ".test_.15_tanh_1323233958_Two_thirds_of_the_n4369_dataset_with_logs_lymf_5YEAR.cvs"
     else:
         filename = sys.argv[1]
 
