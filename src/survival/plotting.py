@@ -28,6 +28,8 @@ def kaplanmeier(data = None, time_column = None, event_column = None, output_col
     If no threshold is specified, the set will be divided into 2 equally large
     sets, divided by the median.
     '''
+    NUMBER_OF_TICKS = 6    
+    
     if (time_column is None and time_array is None or
         time_column is not None and time_array is not None):
         raise Exception("Both time and column can't be None/used")
@@ -93,12 +95,13 @@ def kaplanmeier(data = None, time_column = None, event_column = None, output_col
         all_times = sorted(all_times, key = lambda x: x[0])
         #all_times = sorted(times[0] + times[1], key = lambda x: x[0])
 
-        ticklabels = ["{0}y".format(year) for year in xrange(int(all_times[-1][0]) + 1)]
+        ticklabels = ["{0}y".format(int(year[0])) for year in all_times]
+        bestticklabels = ["{0}y".format(int(year[0])) for year in all_times]
 
         #Count how many are alive at each time
         for i in sorted(xrange(len(times)), reverse = True): #Take best survivors first
-            prev = -1
-            for time, event in all_times:
+            prev = -99999
+            for (time, event), all_times_index in zip(all_times, xrange(len(all_times))):
                 count = 0.0
                 total = 0.0
                 for pattime, patevent in times[i]:
@@ -112,17 +115,35 @@ def kaplanmeier(data = None, time_column = None, event_column = None, output_col
                 else:
                     alive[i].append(count / total) # Probability
                 #alive[i].append(count) # Actual counts
-                if int(time) > prev:
-                    prev = int(time)
-                    ticklabels[prev] += '\n{0}'.format(int(count))
+                ticklabels[all_times_index] += '\n{0}'.format(int(count))
+                #if int(time) > prev:
+                #    prev = int(time)
+                #    ticklabels[prev] += '\n{0}'.format(int(count))
                     #ticklabels[prev] = ticklabels[prev].strip() #Remove possible leading new line on first row
+                    
+        #Find at which time we have the greatest difference, if we have only two groups
+        best_limit = 0
+        best_difference = 0
+        if len(alive) == 2:
+            limit = 0 # Yes, because we want it +1 at the end anyway fornon-inclusive slices
+            for chance_a, chance_b in zip(alive[0], alive[1]):
+                limit += 1
+                diff = abs(chance_a - chance_b)
+                if diff > best_difference:
+                    best_difference = diff
+                    best_limit = limit
 
         #Now plot times vs alive
         fig = plt.figure()
         fig.subplots_adjust(bottom = 0.22) #Move the plot up a bit so x-axis labels fit
-        ax = fig.add_subplot(111)
+        if len(alive) == 2:
+            bestax = fig.add_subplot(211)
+            bestax_right = plt.twinx(bestax)
+        ax = fig.add_subplot(212)
+        ax_right = plt.twinx(ax)
         ps = []
         labels = []
+        best_labels = []
         styles = ['r-', 'g-', 'b-', 'k-']
         #Make sure styles is just as long as alive
         while len(styles) < len(alive):
@@ -130,50 +151,105 @@ def kaplanmeier(data = None, time_column = None, event_column = None, output_col
 
         for i in reversed(xrange(len(alive))): #Do best chance first, so they appear highest in legend
             ps.append(ax.plot([x[0] for x in all_times], alive[i], styles[i]))
-            labels.append(str(alive[i][-1])[:4])
+            best_labels.append(str(alive[i][best_limit-1])[:4])
+            bestax.plot([x[0] for x in all_times[:best_limit]], alive[i][:best_limit], styles[i])
 
         #leg = ax.legend(ps, labels, 'lower left')
         ax.grid(True, 'both')
         ax.set_xlabel("Time, years")
         ax.set_ylabel("Survival ratio")
-        ax.set_title("Kaplan-Meier survival curve\nThresholds: " + str([str(t)[:4] for t in sorted(threshold,
-                                                                        reverse = True)]))
+        if (len(alive) == 2):
+            bestax.set_title("Kaplan-Meier survival curve\nThresholds: " + str([str(t)[:4] for t in sorted(threshold,
+                                                                                reverse = True)]))
+        else:
+            ax.set_title("Kaplan-Meier survival curve\nThresholds: " + str([str(t)[:4] for t in sorted(threshold,
+                                                                            reverse = True)]))
+                                                                        
+        if len(alive) == 2:
+            bestax.grid(False, 'both')
+            #bestax.set_xlabel("Time, years")
+            bestax.set_ylabel("Largest difference")   
+            
+        #Set limits
         
+        if len(alive) == 2:
+            print "xmin = " + str(all_times[0][0]) + " "  + str(all_times[1][0])
+            bestax.set_xlim(xmin = all_times[0][0], xmax = [x[0] for x in all_times][best_limit-1])
+            bestax.minorticks_off()
+            bestax.set_yticklabels([])
+        
+        #Se the ticklabels
+        print(len(all_times))
+        ticks = []
+        final_tick_index = 0
+        major_ticks = []
+        if len(ticklabels) == NUMBER_OF_TICKS:
+            major_ticks = ticklabels
+        else:
+            every_nth = best_limit / (NUMBER_OF_TICKS -1)
+            print("Nth: " + str(every_nth) + " , " + str(int(every_nth)))
+            every_nth = int(every_nth)
+            for label, tick_index in zip(ticklabels, xrange(len(ticklabels))):
+                #major_num includes the first zero, so minus one
+                if tick_index == 0 or tick_index % every_nth == 0:
+                    major_ticks.append(label)
+                    ticks.append(all_times[tick_index][0])
+                    final_tick_index = tick_index
+                    print("index: " + str(tick_index) + " label: " + label)
+          
+        
+        ax.set_xlim(xmin = min(ticks), xmax = max(ticks))
+        ax.set_xticks(ticks)
+        ax.set_xticklabels(major_ticks)
+        
+        
+        if len(alive) == 2:
+            bmajor_ticks = []
+            ticks = []
+           
+            bevery_nth = best_limit / (NUMBER_OF_TICKS -1)
+            print("Nth: " + str(bevery_nth) + " , " + str(int(bevery_nth)))
+            for label, tick_index in zip(bestticklabels[:best_limit], xrange(best_limit-1)):
+                #NUMBER_OF_TICKS includes the first zero, so minus one
+                if tick_index == 0 or tick_index % int(bevery_nth) == 0:
+                    bmajor_ticks.append(label)
+                    ticks.append(all_times[tick_index][0])
+                    print("index: " + str(tick_index) + " label: " + str(label))
+                    
+            bestax.set_xticks(ticks)
+            bestax.set_xticklabels(bmajor_ticks)
+            
         #Add a few values to the right side of the plot
+        best_final_ticks = []
         final_ticks = []
         lower = 1.0
+        best_lower = 1.0
+        best_upper = 0.0
         for i in reversed(xrange(len(alive))):
-            final_ticks.append(alive[i][-1])
-            if alive[i][-1] < lower:
-                lower = alive[i][-1]
-        ax_right = plt.twinx(ax)
+            labels.append(str(alive[i][final_tick_index])[:4])
+            final_ticks.append(alive[i][final_tick_index])
+            if alive[i][final_tick_index] < lower:
+                lower = alive[i][final_tick_index]
+            best_final_ticks.append(alive[i][best_limit-1])
+            if alive[i][best_limit-1] < best_lower:
+                best_lower = alive[i][best_limit-1]
+            if alive[i][best_limit-1] > best_upper:
+                best_upper = alive[i][best_limit-1]
+            
+        
         ax_right.set_yticks(final_ticks)
         ax_right.set_yticklabels(labels)
-
+        
+        if len(alive) == 2:
+            bestax.set_ylim(ymin = best_lower, ymax = 1.0)
+            bestax_right.set_ylim(ymin = best_lower, ymax = 1.0)
+            bestax_right.set_yticks(best_final_ticks)
+            bestax_right.set_yticklabels(best_labels)
+            
         #Set limits on both
         ax.set_ylim(ymin = lower, ymax = 1.0)
         ax_right.set_ylim(ymin = lower, ymax = 1.0)
-        ax.minorticks_on()
-        
-        #Se the ticklabels
-        major_num = len(ax.get_xmajorticklabels())
-        minor_num = len(ax.get_xminorticklabels())
-        print major_num, minor_num, len(ticklabels)
-        major_ticks = []
-        minor_ticks = []
-        if len(ticklabels) == major_num:
-            major_ticks = ticklabels
-        else:
-            for label, tick_index in zip(ticklabels, xrange(len(ticklabels))):
-                #major_num includes the first zero, so minus one
-                if tick_index == 0 or tick_index % (major_num - 1) == 0:
-                    major_ticks.append(label)
-                else:
-                    minor_ticks.append(label)
-                
-        ax.set_xticklabels(major_ticks, minor=False)
-        #Don't set the minor ticks, it becomes too much text. But if desired, uncomment this line
-        #ax.set_xticklabels(minor_ticks, minor=True)
+        ax.minorticks_off()
 
         if show_plot:
             show()
@@ -240,6 +316,8 @@ def scatter(data_x, data_y, events = None, show_plot = True, gridsize = 30, minc
                             num_of_correct += 1
                             
                 #Now we have the ratio
+                #If no previous non-censored exist (possible for test sets for example) we move to zero.
+                total = 1.0 if total < 1 else total
                 ratio = num_of_correct / total
                 
                 #Move the point
