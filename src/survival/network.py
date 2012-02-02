@@ -9,7 +9,7 @@ from __future__ import division
 import numpy
 from kalderstam.neural.fast_network import Node as node
 from kalderstam.neural.network import committee as normal_com, \
-    connect_nodes, network as normal_net
+    connect_nodes, connect_node, network as normal_net
 
 def build_feedforward_committee(size = 8, input_number = 2, hidden_number = 2, output_number = 1, hidden_function = "tanh", output_function = "logsig"):
     net_list = [build_feedforward(input_number, hidden_number, output_number, hidden_function, output_function) for n in xrange(size)]
@@ -19,6 +19,8 @@ def build_feedforward_multilayered(input_number = 2, hidden_numbers = [2], outpu
     net = network()
     net.num_of_inputs = input_number
     inputs = range(input_number)
+    
+    biasnode = net.bias_node
 
     #Hidden layers
     prev_layer = inputs
@@ -26,6 +28,7 @@ def build_feedforward_multilayered(input_number = 2, hidden_numbers = [2], outpu
         current_layer = []
         for i in xrange(int(hidden_number)):
             hidden = node(hidden_function)
+            connect_node(hidden, biasnode)
             connect_nodes(hidden, prev_layer)
             net.hidden_nodes.append(hidden)
             current_layer.append(hidden)
@@ -34,29 +37,15 @@ def build_feedforward_multilayered(input_number = 2, hidden_numbers = [2], outpu
     #Output nodes
     for i in xrange(int(output_number)):
         output = node(output_function)
+        connect_node(output, biasnode)
         connect_nodes(output, prev_layer)
         net.output_nodes.append(output)
 
     return net
 
 def build_feedforward(input_number = 2, hidden_number = 2, output_number = 1, hidden_function = "tanh", output_function = "logsig"):
-    net = network()
-    net.num_of_inputs = input_number
-    inputs = range(input_number)
-
-    #Hidden layer
-    for i in xrange(int(hidden_number)):
-        hidden = node(hidden_function)
-        connect_nodes(hidden, inputs)
-        net.hidden_nodes.append(hidden)
-
-    #Output nodes
-    for i in xrange(int(output_number)):
-        output = node(output_function)
-        connect_nodes(output, net.hidden_nodes)
-        net.output_nodes.append(output)
-
-    return net
+    return build_feedforward_multilayered(input_number, [hidden_number],
+            output_number, hidden_function, output_function)
 
 class committee(normal_com):
     '''
@@ -114,3 +103,12 @@ class network(normal_net):
             index = len(self.trn_set[self.trn_set < output]) # Length of the array of all values less than output = index where output would be placed
             #Normalize it
             return index / float((len(self.trn_set) + 1)) # +1 to make sure the maximum is 1.0 if the input is placed last
+            
+def risk_eval(modded_net, test_input):
+    if len(modded_net.trn_set) < 1:
+        raise IndexError('No training set has been set!')
+    else:
+        output = modded_net.update(test_input)
+        index = len(modded_net.trn_set[modded_net.trn_set < output]) # Length of the array of all values less than output = index where output would be placed
+        #Normalize it
+        return index / float((len(modded_net.trn_set) + 1)) # +1 to make sure the maximum is 1.0 if the input is placed last
