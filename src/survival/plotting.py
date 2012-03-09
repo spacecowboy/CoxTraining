@@ -18,7 +18,7 @@ def show():
         plt.show()
 
 def kaplanmeier(data = None, time_column = None, event_column = None, output_column = None, time_array = None,
-                event_array = None, output_array = None, threshold = None, even = False, show_plot = True):
+                event_array = None, output_array = None, threshold = None, even = False, show_plot = True, time_step_size = 1, **kwargs):
     ''' Idea is to plot number of patients still alive on the y-axis,
     against the time on the x-axis. The time column specifies which
     axis is the time. Event column should be a binary value, indicating
@@ -95,8 +95,8 @@ def kaplanmeier(data = None, time_column = None, event_column = None, output_col
         all_times = sorted(all_times, key = lambda x: x[0])
         #all_times = sorted(times[0] + times[1], key = lambda x: x[0])
 
-        ticklabels = ["{0}y".format(int(year[0])) for year in all_times]
-        bestticklabels = ["{0}y".format(int(year[0])) for year in all_times]
+        ticklabels = ["{:.1f}y".format(year[0]) for year in all_times]
+        bestticklabels = ["{:.1f}y".format(year[0]) for year in all_times]
 
         #Count how many are alive at each time
         for i in sorted(xrange(len(times)), reverse = True): #Take best survivors first
@@ -115,7 +115,7 @@ def kaplanmeier(data = None, time_column = None, event_column = None, output_col
                 else:
                     alive[i].append(count / total) # Probability
                 #alive[i].append(count) # Actual counts
-                ticklabels[all_times_index] += '\n{0}'.format(int(count))
+                ticklabels[all_times_index] += '\n{0:d}'.format(int(count))
                 #if int(time) > prev:
                 #    prev = int(time)
                 #    ticklabels[prev] += '\n{0}'.format(int(count))
@@ -178,24 +178,54 @@ def kaplanmeier(data = None, time_column = None, event_column = None, output_col
             bestax.minorticks_off()
             bestax.set_yticklabels([])
         
-        #Se the ticklabels
+        #Set the ticklabels
         print(len(all_times))
         ticks = []
         final_tick_index = 0
         major_ticks = []
-        if len(ticklabels) == NUMBER_OF_TICKS:
-            major_ticks = ticklabels
-        else:
-            every_nth = best_limit / (NUMBER_OF_TICKS -1)
-            print("Nth: " + str(every_nth) + " , " + str(int(every_nth)))
-            every_nth = int(every_nth)
-            for label, tick_index in zip(ticklabels, xrange(len(ticklabels))):
-                #major_num includes the first zero, so minus one
-                if tick_index == 0 or tick_index % every_nth == 0:
+#        if len(ticklabels) == NUMBER_OF_TICKS:
+#            major_ticks = ticklabels
+#        else:
+#            every_nth = best_limit / (NUMBER_OF_TICKS -1)
+#            print("Nth: " + str(every_nth) + " , " + str(int(every_nth)))
+#            every_nth = int(every_nth)
+#            for (tick_index, label) in enumerate(ticklabels):
+#                #major_num includes the first zero, so minus one
+#                if tick_index == 0 or tick_index % every_nth == 0:
+#                    major_ticks.append(label)
+#                    ticks.append(all_times[tick_index][0])
+#                    final_tick_index = tick_index
+#                    print("index: " + str(tick_index) + " label: " + label)
+
+        #First item should always be total population sizes        
+        major_ticks.append(ticklabels[0])
+        ticks.append(0) #Time zero years
+        year_limit = time_step_size
+        last_time = 0
+        for (tick_index, label), (time, event) in zip(enumerate(ticklabels), all_times):
+            # If we have gone a year forward in time
+            if time >= year_limit:
+                year_limit += time_step_size
+                major_ticks.append(label)
+                ticks.append(time)
+                final_tick_index = tick_index
+                last_time = time
+                #print("index: " + str(tick_index) + " label: " + label)
+                continue
+                
+            if tick_index == (len(ticklabels) -1):
+                #Last item, add that as well if it is > 0.5 years from last entry
+                #Else, replace last item with this
+                if (0.5*time_step_size <= (time - last_time)):
                     major_ticks.append(label)
-                    ticks.append(all_times[tick_index][0])
+                    ticks.append(time)
                     final_tick_index = tick_index
-                    print("index: " + str(tick_index) + " label: " + label)
+                else:
+                    major_ticks[-1] = label
+                    ticks[-1] = time
+                final_tick_index = tick_index
+                #print("index: " + str(tick_index) + " label: " + label)
+                
           
         
         ax.set_xlim(xmin = min(ticks), xmax = max(ticks))
@@ -206,15 +236,43 @@ def kaplanmeier(data = None, time_column = None, event_column = None, output_col
         if len(alive) == 2:
             bmajor_ticks = []
             ticks = []
+            bmajor_ticks.append(bestticklabels[0])
+            ticks.append(0) #Time zero years
+            year_limit = time_step_size
+            last_time = 0
            
-            bevery_nth = best_limit / (NUMBER_OF_TICKS -1)
-            print("Nth: " + str(bevery_nth) + " , " + str(int(bevery_nth)))
-            for label, tick_index in zip(bestticklabels[:best_limit], xrange(best_limit-1)):
-                #NUMBER_OF_TICKS includes the first zero, so minus one
-                if tick_index == 0 or tick_index % int(bevery_nth) == 0:
+            for (tick_index, label), (time, event) in zip(enumerate(bestticklabels[:best_limit]), all_times[:best_limit]):
+                # If we have gone a year forward in time
+                if time >= year_limit:
+                    year_limit += time_step_size
                     bmajor_ticks.append(label)
-                    ticks.append(all_times[tick_index][0])
-                    print("index: " + str(tick_index) + " label: " + str(label))
+                    ticks.append(time)
+                    last_time = time
+                    #print("index: " + str(tick_index) + " label: " + label)
+                    continue
+                    
+                if tick_index == (best_limit -1):
+                    #Last item, add that as well if it is > 0.5 years from last entry
+                    #Else, replace last item with this
+                    if (0.5*time_step_size <= (time - last_time)):
+                        bmajor_ticks.append(label)
+                        ticks.append(time)
+                        #print("index: " + str(tick_index) + " label: " + label + ", time {0} lasttime {1}".format(time, last_time))
+                    else:
+                        bmajor_ticks[-1] = label
+                        ticks[-1] = time
+                        #print("OVERRIDE index: " + str(tick_index) + " label: " + label + ", time {0} lasttime {1}".format(time, last_time))
+           
+           
+           
+#            bevery_nth = best_limit / (NUMBER_OF_TICKS -1)
+#            print("Nth: " + str(bevery_nth) + " , " + str(int(bevery_nth)))
+#            for label, tick_index in zip(bestticklabels[:best_limit], xrange(best_limit-1)):
+#                #NUMBER_OF_TICKS includes the first zero, so minus one
+#                if tick_index == 0 or tick_index % int(bevery_nth) == 0:
+#                    bmajor_ticks.append(label)
+#                    ticks.append(all_times[tick_index][0])
+#                    print("index: " + str(tick_index) + " label: " + str(label))
                     
             bestax.set_xticks(ticks)
             bestax.set_xticklabels(bmajor_ticks)
