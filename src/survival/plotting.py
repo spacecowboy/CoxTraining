@@ -101,7 +101,7 @@ def kaplanmeier(data = None, time_column = None, event_column = None, output_col
         #Count how many are alive at each time
         for i in sorted(xrange(len(times)), reverse = True): #Take best survivors first
             prev = -99999
-            for (time, event), all_times_index in zip(all_times, xrange(len(all_times))):
+            for all_times_index, (time, event) in enumerate(all_times):
                 count = 0.0
                 total = 0.0
                 for pattime, patevent in times[i]:
