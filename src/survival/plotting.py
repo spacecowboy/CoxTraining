@@ -264,8 +264,8 @@ def calc_line(x, y):
     '''
     A = np.vstack([x, np.ones(len(x))]).T
     return np.linalg.lstsq(A, y)[0]
-
-def scatter(data_x, data_y, events = None, show_plot = True, gridsize = 30, mincnt = 0, x_label = '', y_label = ''):
+    
+def scatter(data_x, data_y, events = None, show_plot = True, gridsize = 30, mincnt = 0, x_label = '', y_label = '', title= '', ax = None, plotSlope = None):
     '''
     It is assumed that the x-axis contains the target data, and y-axis the computed outputs.
     If events is not None, then any censored data (points with a zero in events) will not be able to go above the diagonal.
@@ -273,7 +273,7 @@ def scatter(data_x, data_y, events = None, show_plot = True, gridsize = 30, minc
     The diagonal is calculated from the non-censored data (all if no events specified) using least squares linear regression.
     Gridsize determines how many hexagonal bins are used (on the x-axis. Y-axis is determined automatically to match)
     mincnt is the minimum number of hits a bin needs to be plotted.
-    '''
+    '''    
     if not len(data_x) == len(data_y) or (events is not None and not len(data_x) == len(events)):
         raise ValueError('Lengths of arrays do not match!')
 
@@ -281,6 +281,10 @@ def scatter(data_x, data_y, events = None, show_plot = True, gridsize = 30, minc
     xmax = data_x.max()
     ymin = data_y.min()
     ymax = data_y.max()
+    
+    if plotSlope is None:
+        #Nothing has been specified, we do it if we have events
+        plotSlope = True if events is not None else False
     
     #For plotting reasons, we need to have these sorted
     if events is None:
@@ -324,23 +328,28 @@ def scatter(data_x, data_y, events = None, show_plot = True, gridsize = 30, minc
                 diagonal_point = cut + slope * target
                 sorted_x_y[i][1] = ymin + ratio * (diagonal_point - ymin)
 
-    
-    fig = plt.figure()
-    ax = fig.add_subplot(111)
+    axWasNone = False
+    if ax is None:
+        fig = plt.figure()
+        ax = fig.add_subplot(111)
+        axWasNone = True
     pc = ax.hexbin(sorted_x_y[:, 0], sorted_x_y[:, 1], bins = 'log', cmap = cm.jet,
                    gridsize = gridsize, mincnt = mincnt)
     ax.axis([xmin, xmax, ymin, ymax])
-    line_eq = "Line: {m:.3f} * x + {c:.3f}".format(m=slope, c=cut)
-    ax.set_title("Scatter plot heatmap, taking censored into account\n" + line_eq) if events is not None else \
-        ax.set_title("Scatter plot heatmap\n" + line_eq)
-    cb = fig.colorbar(pc, ax = ax)
-    cb.set_label('log10(N)')
-    ax.plot(sorted_x_y[:, 0], slope*sorted_x_y[:, 0] + cut, 'r-') #Print slope
+    #line_eq = "Line: {m:.3f} * x + {c:.3f}".format(m=slope, c=cut)
+    #ax.set_title("Scatter plot heatmap, taking censored into account\n" + line_eq) if events is not None else \
+    #    ax.set_title("Scatter plot heatmap\n" + line_eq)
+    if axWasNone:
+        cb = fig.colorbar(pc, ax = ax)
+        cb.set_label('log10(N)')
+    if plotSlope:
+        ax.plot(sorted_x_y[:, 0], slope*sorted_x_y[:, 0] + cut, 'r-') #Print slope
     #ax.scatter(sorted_x_y[:, 0], sorted_x_y[:, 1], c='g')
     ax.set_xlabel(x_label)
     ax.set_ylabel(y_label)
+    ax.set_title(title)
 
-    if show_plot:
+    if axWasNone and show_plot:
         show()
 
 
