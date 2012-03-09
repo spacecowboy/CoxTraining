@@ -168,7 +168,7 @@ def kaplanmeier(data = None, time_column = None, event_column = None, output_col
         if len(alive) == 2:
             bestax.grid(False, 'both')
             #bestax.set_xlabel("Time, years")
-            bestax.set_ylabel("Largest difference")   
+            bestax.set_ylabel("Largest\ndifference")   
             
         #Set limits
         
