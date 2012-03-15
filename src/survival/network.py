@@ -69,15 +69,15 @@ class committee(normal_com):
             for net in self.nets:
                 output = net.update(input)
                 index = len(net.trn_set[net.trn_set < output]) # Length of the array of all values less than output = index where output would be placed
-                #Normalize it
-                avg_index += index / float((len(net.trn_set) + 1)) # +1 to make sure the maximum is 1.0 if the input is placed last
+                #Normalize it, index is from 0 to len, so don't need plus 1
+                avg_index += index / float(len(net.trn_set))
 
             return avg_index / float(len(self))
         else:
             output = net.update(input)
             index = len(net.trn_set[net.trn_set < output]) # Length of the array of all values less than output = index where output would be placed
-            #Normalize it
-            return index / (len(net.trn_set) + 1)
+            #Normalize it, index is from 0 to len, so don't need plus 1
+            return index / (len(net.trn_set))
 
 class network(normal_net):
     '''
@@ -101,8 +101,8 @@ class network(normal_net):
         else:
             output = self.update(input)
             index = len(self.trn_set[self.trn_set < output]) # Length of the array of all values less than output = index where output would be placed
-            #Normalize it
-            return index / float((len(self.trn_set) + 1)) # +1 to make sure the maximum is 1.0 if the input is placed last
+            #Normalize it, index is from 0 to len, so don't need plus 1
+            return index / float(len(self.trn_set))
             
 def risk_eval(modded_net, test_input):
     if len(modded_net.trn_set) < 1:
@@ -110,5 +110,5 @@ def risk_eval(modded_net, test_input):
     else:
         output = modded_net.update(test_input)
         index = len(modded_net.trn_set[modded_net.trn_set < output]) # Length of the array of all values less than output = index where output would be placed
-        #Normalize it
-        return index / float((len(modded_net.trn_set) + 1)) # +1 to make sure the maximum is 1.0 if the input is placed last
+        #Normalize it, index is from 0 to len, so don't need plus 1
+        return index / float(len(modded_net.trn_set))
