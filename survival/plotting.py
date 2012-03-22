@@ -1,5 +1,5 @@
 from __future__ import division
-from kalderstam.util.filehandling import read_data_file, parse_data
+from ann.filehandling import read_data_file, parse_data
 try:
     import matplotlib
     matplotlib.use('GTKAgg')
@@ -100,7 +100,6 @@ def kaplanmeier(data = None, time_column = None, event_column = None, output_col
 
         #Count how many are alive at each time
         for i in sorted(xrange(len(times)), reverse = True): #Take best survivors first
-            prev = -99999
             for all_times_index, (time, event) in enumerate(all_times):
                 count = 0.0
                 total = 0.0

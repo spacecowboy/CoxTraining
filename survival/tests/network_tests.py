@@ -4,11 +4,7 @@ Created on Feb 02, 2012
 @author: jonask
 '''
 import unittest
-#from ..network import build_feedforward
-from survival.network import build_feedforward, network
-#from ..network import build_feedforward_committee
-from survival.network import build_feedforward_committee
-#from kalderstam.neural.network import connect_node
+from survival.network import build_feedforward, build_feedforward_committee
 
 
 class Test(unittest.TestCase):

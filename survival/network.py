@@ -7,9 +7,8 @@ Created on Sep 1, 2011
 from __future__ import division
 #Defines the node, and the network
 import numpy
-from kalderstam.neural.fast_network import Node as node
-from kalderstam.neural.network import committee as normal_com, \
-    connect_nodes, connect_node, network as normal_net
+from ann.network import (committee as normal_com, connect_nodes, connect_node, 
+                         network as normal_net, node)
 
 def build_feedforward_committee(size = 8, input_number = 2, hidden_number = 2, output_number = 1, hidden_function = "tanh", output_function = "logsig"):
     net_list = [build_feedforward(input_number, hidden_number, output_number, hidden_function, output_function) for n in xrange(size)]
